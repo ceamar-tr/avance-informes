@@ -152,7 +152,7 @@
 <div class="header">
   <div class="header-left">
     <div class="logo-wrap">
-      <img src="https://drive.google.com/uc?export=view&id=1f9O6E1rR3PAuO_JbZieC3lZagpXuP-ad" alt="CEAMAR" onerror="this.style.display='none'">
+      <img src="./logo.png" alt="CEAMAR" onerror="this.src='https://drive.google.com/uc?export=view&id=1f9O6E1rR3PAuO_JbZieC3lZagpXuP-ad'">
     </div>
     <div>
       <div class="htitle">Avance Informes y Planillas SMA</div>
@@ -394,16 +394,19 @@ function getProy(rows){
   rows.forEach(function(r){
     // Clave solo por nombre: agrupa todas las campañas del mismo proyecto
     var k = r.proyecto;
-    if(!map[k]) map[k]={proyecto:r.proyecto,campanas:[],mes:r.mes,source:r.source,
+    if(!map[k]) map[k]={proyecto:r.proyecto,campanas:[],campanaNorms:[],mes:r.mes,source:r.source,
                          secciones:[],resp:[],sma:[]};
     map[k].secciones.push(r);
     if(r.campana&&map[k].campanas.indexOf(r.campana)<0) map[k].campanas.push(r.campana);
+    // Acumular nombres normalizados únicos (Verano, Invierno, etc.)
+    var cn=r.campanaNorm||r.campana;
+    if(cn&&map[k].campanaNorms.indexOf(cn)<0) map[k].campanaNorms.push(cn);
     if(r.responsable&&map[k].resp.indexOf(r.responsable)<0) map[k].resp.push(r.responsable);
     if(r.smaResp&&map[k].sma.indexOf(r.smaResp)<0) map[k].sma.push(r.smaResp);
   });
   return Object.keys(map).map(function(k){
     var p=map[k],tot=p.secciones.length,comp=p.secciones.filter(function(s){return s.completado;}).length;
-    return Object.assign({},p,{campana:p.campanas.join(' · '),
+    return Object.assign({},p,{campana:p.campanaNorms.join(' · '),
                                 tot:tot,comp:comp,pct:tot>0?Math.round(comp/tot*100):0,done:comp===tot});
   });
 }

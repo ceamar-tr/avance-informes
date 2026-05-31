@@ -48,8 +48,16 @@
   .search-input:focus{border-color:var(--verde);}
   .search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--suave);font-size:14px;pointer-events:none;}
   .proyecto-select{padding:7px 14px;border-radius:20px;border:1px solid var(--borde);font-size:12px;font-family:'DM Sans',sans-serif;outline:none;background:white;color:var(--suave);cursor:pointer;max-width:220px;}
-  .mes-sel{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
-  .mes-btn{padding:5px 12px;border-radius:20px;font-size:12px;border:1px solid #a5d6a7;cursor:pointer;background:white;color:var(--suave);transition:all .2s;font-weight:500;}
+  /* SELECTOR DE MES COLAPSABLE */
+  .mes-wrap{position:relative;display:inline-block;margin-bottom:16px;}
+  .mes-current{display:flex;align-items:center;gap:8px;padding:7px 16px;background:var(--verde);color:white;border-radius:20px;cursor:pointer;font-size:13px;font-weight:500;border:none;font-family:'DM Sans',sans-serif;transition:background .2s;}
+  .mes-current:hover{background:#155226;}
+  .mes-arrow{font-size:10px;transition:transform .2s;}
+  .mes-dropdown{display:none;position:absolute;top:calc(100% + 8px);left:0;background:white;border-radius:var(--r);box-shadow:0 8px 32px rgba(0,0,0,0.15);padding:14px;z-index:200;min-width:320px;border:1px solid var(--borde);}
+  .mes-dropdown.open{display:block;}
+  .mes-yr-label{font-size:10px;font-weight:700;color:var(--suave);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;}
+  .mes-grid{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+  .mes-btn{padding:4px 11px;border-radius:14px;font-size:12px;border:1px solid #a5d6a7;cursor:pointer;background:white;color:var(--suave);transition:all .2s;font-weight:500;}
   .mes-btn:hover,.mes-btn.on{background:var(--verde);color:white;border-color:var(--verde);}
   .mes-btn.a25{border-color:var(--borde);}
   .mes-btn.a25:hover,.mes-btn.a25.on{background:var(--suave);color:white;border-color:var(--suave);}
@@ -170,7 +178,18 @@
 
   <!-- TAB PROYECTOS -->
   <div id="tc-proyectos" class="tc on">
-    <div class="mes-sel" id="mes-sel"></div>
+    <div class="mes-wrap" id="mes-wrap">
+      <button class="mes-current" id="mes-current" onclick="toggleMesDropdown()">
+        <span id="mes-label">Cargando...</span>
+        <span class="mes-arrow" id="mes-arrow">▾</span>
+      </button>
+      <div class="mes-dropdown" id="mes-dropdown">
+        <div class="mes-yr-label" style="color:var(--verde)">2026</div>
+        <div class="mes-grid" id="mes-grid-26"></div>
+        <div class="mes-yr-label" style="color:var(--suave)">2025</div>
+        <div class="mes-grid" id="mes-grid-25"></div>
+      </div>
+    </div>
     <div class="controles">
       <div class="search-wrap">
         <span class="search-icon">🔍</span>
@@ -369,20 +388,23 @@ function cargar(){
   });
 }
 
-// ─── AGRUPACIÓN POR PROYECTO ─────────────────────────────
+// ─── AGRUPACIÓN POR PROYECTO (deduplicado por nombre) ────
 function getProy(rows){
   var map = {};
   rows.forEach(function(r){
-    var k = r.proyecto+'||'+r.campana+'||'+r.source+'||'+r.mes;
-    if(!map[k]) map[k]={proyecto:r.proyecto,campana:r.campana,campanaNorm:r.campanaNorm,
-                         mes:r.mes,source:r.source,secciones:[],resp:[],sma:[]};
+    // Clave solo por nombre: agrupa todas las campañas del mismo proyecto
+    var k = r.proyecto;
+    if(!map[k]) map[k]={proyecto:r.proyecto,campanas:[],mes:r.mes,source:r.source,
+                         secciones:[],resp:[],sma:[]};
     map[k].secciones.push(r);
+    if(r.campana&&map[k].campanas.indexOf(r.campana)<0) map[k].campanas.push(r.campana);
     if(r.responsable&&map[k].resp.indexOf(r.responsable)<0) map[k].resp.push(r.responsable);
     if(r.smaResp&&map[k].sma.indexOf(r.smaResp)<0) map[k].sma.push(r.smaResp);
   });
   return Object.keys(map).map(function(k){
     var p=map[k],tot=p.secciones.length,comp=p.secciones.filter(function(s){return s.completado;}).length;
-    return Object.assign({},p,{tot:tot,comp:comp,pct:tot>0?Math.round(comp/tot*100):0,done:comp===tot});
+    return Object.assign({},p,{campana:p.campanas.join(' · '),
+                                tot:tot,comp:comp,pct:tot>0?Math.round(comp/tot*100):0,done:comp===tot});
   });
 }
 
@@ -400,29 +422,43 @@ function detectRec(){
   return{mes:'Enero',anio:'2026'};
 }
 
-// ─── SELECTOR DE MES ─────────────────────────────────────
+// ─── SELECTOR DE MES COLAPSABLE ──────────────────────────
 function buildSel(){
   var m26=[],m25=[];
   ALL.forEach(function(r){
     if(r.source==='2026'&&m26.indexOf(r.mes)<0) m26.push(r.mes);
     if(r.source==='2025'&&m25.indexOf(r.mes)<0) m25.push(r.mes);
   });
-  var h='<span class="flabel">Mes:</span> <span class="flabel" style="color:var(--verde)">2026:</span> ';
+  var h26='', h25='';
   MESES_ORD.forEach(function(m){
     if(m26.indexOf(m)>=0){
       var on=(m===mesSel&&anioSel==='2026')?' on':'';
-      h+='<button class="mes-btn'+on+'" onclick="selMes(\''+m+'\',\'2026\',this)">'+m.substring(0,3)+'</button> ';
+      h26+='<button class="mes-btn'+on+'" onclick="selMes(\''+m+'\',\'2026\',this)">'+m.substring(0,3)+'</button>';
     }
-  });
-  h+='<span class="flabel" style="color:var(--suave)">2025:</span> ';
-  MESES_ORD.forEach(function(m){
     if(m25.indexOf(m)>=0){
       var on=(m===mesSel&&anioSel==='2025')?' on':'';
-      h+='<button class="mes-btn a25'+on+'" onclick="selMes(\''+m+'\',\'2025\',this)">'+m.substring(0,3)+'</button> ';
+      h25+='<button class="mes-btn a25'+on+'" onclick="selMes(\''+m+'\',\'2025\',this)">'+m.substring(0,3)+'</button>';
     }
   });
-  document.getElementById('mes-sel').innerHTML=h;
+  document.getElementById('mes-grid-26').innerHTML=h26;
+  document.getElementById('mes-grid-25').innerHTML=h25;
+  // Actualizar etiqueta del botón
+  document.getElementById('mes-label').textContent=mesSel+' '+anioSel;
 }
+function toggleMesDropdown(){
+  var dd=document.getElementById('mes-dropdown');
+  var arrow=document.getElementById('mes-arrow');
+  var open=dd.classList.toggle('open');
+  arrow.style.transform=open?'rotate(180deg)':'';
+}
+// Cerrar dropdown al hacer click fuera
+document.addEventListener('click',function(e){
+  var wrap=document.getElementById('mes-wrap');
+  if(wrap&&!wrap.contains(e.target)){
+    document.getElementById('mes-dropdown').classList.remove('open');
+    document.getElementById('mes-arrow').style.transform='';
+  }
+});
 
 function buildProyectoSelect(){
   var proyectos=[];
@@ -441,6 +477,9 @@ function selMes(m,a,el){
   mesSel=m; anioSel=a;
   document.querySelectorAll('.mes-btn').forEach(function(b){b.classList.remove('on');});
   el.classList.add('on');
+  document.getElementById('mes-label').textContent=m+' '+a;
+  document.getElementById('mes-dropdown').classList.remove('open');
+  document.getElementById('mes-arrow').style.transform='';
   render(); renderAlertas(); renderEquipo(); renderSMA();
 }
 function goTab(id,el){
@@ -512,8 +551,8 @@ function render(){
       var c=gc(r);return '<span class="av av-sm" style="background:'+c.bg+';color:'+c.fg+';" title="'+r+'">'+ini(r)+'</span>';
     }).join('');
     var estadoPill=p.done?pill('✓ Completo','p-ok'):p.comp>0?pill(p.comp+'/'+p.tot+' secc.','p-parcial'):pill('Sin iniciar','p-pend');
-    var safeKey=p.proyecto.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'|'+p.campana.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    return '<div class="proy-card '+clase+'" onclick="verDetalle(\''+safeKey+'\')">'+
+    var safeNombre=p.proyecto.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return '<div class="proy-card '+clase+'" onclick="verDetalle(\''+safeNombre+'\')">'+
       '<div class="proy-nombre">'+p.proyecto+'</div>'+
       '<div class="proy-campana">'+p.campana+' · '+p.mes+' '+p.source+'</div>'+
       '<div class="proy-prog-wrap">'+
@@ -528,13 +567,14 @@ function render(){
 }
 
 // ─── DETALLE PROYECTO ────────────────────────────────────
-function verDetalle(key){
-  var parts=key.split('|');
-  var nombre=parts[0], campana=parts[1];
-  var rows=ALL.filter(function(r){return r.proyecto===nombre&&r.campana===campana&&r.mes===mesSel&&r.source===anioSel;});
+function verDetalle(nombre){
+  var rows=ALL.filter(function(r){return r.proyecto===nombre&&r.mes===mesSel&&r.source===anioSel;});
   if(!rows.length) return;
+  // Obtener campañas únicas para el subtítulo
+  var campanas=[];
+  rows.forEach(function(r){if(r.campana&&campanas.indexOf(r.campana)<0)campanas.push(r.campana);});
   document.getElementById('detalle-titulo').textContent=nombre;
-  document.getElementById('detalle-sub').textContent=campana+' · '+mesSel+' '+anioSel;
+  document.getElementById('detalle-sub').textContent=campanas.join(' · ')+' · '+mesSel+' '+anioSel;
   var lista=rows.map(function(s){
     var c=gc(s.responsable);
     return '<div class="secc-item '+(s.completado?'ok':'pend')+'">'+

@@ -145,7 +145,48 @@
   .tc{display:none;}.tc.on{display:block;}
   .prog-bar{height:6px;background:#f0f0f0;border-radius:3px;overflow:hidden;margin-top:3px;}
   .prog-fill{height:100%;border-radius:3px;}
-  @media(max-width:900px){.kgrid{grid-template-columns:repeat(2,1fr)}.proyectos-grid{grid-template-columns:1fr}.equipo-grid{grid-template-columns:repeat(2,1fr)}.wrap{padding:14px}}
+  /* KPI TENDENCIA */
+  .ktend{font-size:10px;margin-top:4px;font-weight:600;}
+  .ktend.up{color:var(--verde);}
+  .ktend.down{color:var(--rojo);}
+  .ktend.eq{color:var(--suave);}
+  /* EXPORTAR */
+  .export-btn{padding:7px 14px;border-radius:20px;border:1px solid var(--borde);font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;background:white;color:var(--suave);transition:all .2s;font-weight:500;display:flex;align-items:center;gap:5px;}
+  .export-btn:hover{border-color:var(--verde);color:var(--verde);}
+  /* VISTA ANUAL */
+  .anual-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+  .anio-btn{padding:6px 16px;border-radius:20px;font-size:13px;font-weight:500;border:1px solid var(--borde);cursor:pointer;background:white;color:var(--suave);transition:all .2s;}
+  .anio-btn.on{background:var(--verde);color:white;border-color:var(--verde);}
+  .anual-wrap{overflow-x:auto;}
+  .anual-table{width:100%;border-collapse:collapse;font-size:12px;min-width:700px;}
+  .anual-table th{text-align:center;padding:7px 6px;font-size:10px;font-weight:700;color:var(--suave);text-transform:uppercase;background:var(--gris);border-bottom:2px solid var(--borde);white-space:nowrap;}
+  .anual-table th.th-proy{text-align:left;min-width:160px;}
+  .anual-table td{padding:6px;text-align:center;border-bottom:1px solid #f0f0f0;}
+  .anual-table td.td-proy{text-align:left;font-weight:600;color:var(--azul);font-size:12px;padding-left:9px;}
+  .anual-table tr:hover td{background:#fafafa;}
+  .anual-table tr.total-row td{background:var(--gris);font-weight:700;border-top:2px solid var(--borde);}
+  .mes-dot{width:32px;height:20px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;cursor:pointer;transition:transform .15s;}
+  .mes-dot:hover{transform:scale(1.15);}
+  .mes-dot.ok{background:var(--verde-s);color:var(--verde);}
+  .mes-dot.parcial{background:var(--amber-s);color:var(--amber);}
+  .mes-dot.sin{background:#f5f5f5;color:#bbb;}
+  .mes-dot.vacio{background:transparent;color:transparent;cursor:default;}
+  /* PENDIENTES */
+  .pend-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;}
+  .pend-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+  .pend-card{background:white;border-radius:var(--r);padding:16px;box-shadow:var(--sombra);}
+  .pend-card-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .pend-nombre{font-size:14px;font-weight:600;flex:1;}
+  .pend-badge{background:var(--rojo-s);color:var(--rojo);font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;}
+  .pend-badge.cero{background:var(--verde-s);color:var(--verde);}
+  .pend-lista{display:flex;flex-direction:column;gap:5px;}
+  .pend-item{display:flex;align-items:flex-start;gap:8px;padding:6px 8px;border-radius:7px;background:var(--rojo-s);font-size:11px;}
+  .pend-item-icon{color:var(--rojo);font-size:12px;flex-shrink:0;margin-top:1px;}
+  .pend-item-text{flex:1;}
+  .pend-item-proy{font-weight:600;color:var(--azul);}
+  .pend-item-secc{color:var(--suave);}
+  .pend-empty{padding:12px 8px;font-size:12px;color:var(--verde);text-align:center;}
+  @media(max-width:900px){.kgrid{grid-template-columns:repeat(2,1fr)}.proyectos-grid{grid-template-columns:1fr}.equipo-grid{grid-template-columns:repeat(2,1fr)}.pend-grid{grid-template-columns:1fr}.wrap{padding:14px}}
 </style>
 </head>
 <body>
@@ -180,7 +221,9 @@
   <div class="alertas" id="alertas" style="display:none;"></div>
   <div class="tabs">
     <button class="tab active" onclick="goTab('proyectos',this)">Proyectos</button>
+    <button class="tab" onclick="goTab('pendientes',this)">Pendientes</button>
     <button class="tab" onclick="goTab('equipo',this)">Equipo</button>
+    <button class="tab" onclick="goTab('anual',this)">Vista anual</button>
     <button class="tab" onclick="goTab('sma',this)">Planillas SMA</button>
   </div>
 
@@ -206,6 +249,7 @@
       <select class="proyecto-select" id="proyecto-select" onchange="seleccionarProyecto(this.value)">
         <option value="">Todos los proyectos</option>
       </select>
+      <button class="export-btn" onclick="exportarCSV()">⬇ Exportar CSV</button>
       <span class="flabel" style="margin-left:4px;">Campaña:</span>
       <button class="fchip on" onclick="fCamp('Todas',this)">Todas</button>
       <button class="fchip" onclick="fCamp('Invierno',this)">Invierno</button>
@@ -229,10 +273,33 @@
     </div>
   </div>
 
+  <!-- TAB PENDIENTES -->
+  <div id="tc-pendientes" class="tc">
+    <div class="pend-header">
+      <div style="font-size:12px;color:var(--suave);">Secciones pendientes en <strong id="pend-mes-label">—</strong></div>
+    </div>
+    <div class="pend-grid" id="pend-grid">
+      <div class="loading"><div class="spin-lg"></div></div>
+    </div>
+  </div>
+
   <!-- TAB EQUIPO -->
   <div id="tc-equipo" class="tc">
     <div class="equipo-grid" id="equipo-grid">
       <div class="loading"><div class="spin-lg"></div></div>
+    </div>
+  </div>
+
+  <!-- TAB ANUAL -->
+  <div id="tc-anual" class="tc">
+    <div class="anual-header">
+      <span class="flabel">Año:</span>
+      <button class="anio-btn on" id="anio-btn-2026" onclick="selAnio('2026',this)">2026</button>
+      <button class="anio-btn" id="anio-btn-2025" onclick="selAnio('2025',this)">2025</button>
+      <span style="font-size:11px;color:var(--suave);margin-left:8px;">Haz clic en un mes para ir directamente</span>
+    </div>
+    <div class="anual-wrap">
+      <div id="anual-tabla"><div class="loading"><div class="spin-lg"></div></div></div>
     </div>
   </div>
 
@@ -374,7 +441,7 @@ function cargar(){
       if(!primerRenderHecho && done >= Math.min(2, total)){
         primerRenderHecho = true;
         var rec = detectRec(); mesSel=rec.mes; anioSel=rec.anio;
-        buildSel(); buildProyectoSelect(); render(); renderAlertas(); renderEquipo(); renderSMA();
+        buildSel(); buildProyectoSelect(); render(); renderAlertas(); renderEquipo(); renderSMA(); renderPendientes(); renderAnual();
       }
     });
   });
@@ -382,7 +449,7 @@ function cargar(){
   Promise.all(promises).then(function(){
     var now2 = new Date();
     if(!mesSel){ var rec=detectRec(); mesSel=rec.mes; anioSel=rec.anio; }
-    buildSel(); buildProyectoSelect(); render(); renderAlertas(); renderEquipo(); renderSMA();
+    buildSel(); buildProyectoSelect(); render(); renderAlertas(); renderEquipo(); renderSMA(); renderPendientes(); renderAnual();
     document.getElementById('fhdr').textContent = now2.toLocaleDateString('es-CL',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
     var errTxt = errors.length ? ' · '+errors.length+' hoja'+(errors.length>1?'s':'')+' con error' : '';
@@ -491,7 +558,7 @@ function selMes(m,a,el){
   document.getElementById('mes-label').textContent=m+' '+a;
   document.getElementById('mes-dropdown').classList.remove('open');
   document.getElementById('mes-arrow').style.transform='';
-  render(); renderAlertas(); renderEquipo(); renderSMA();
+  render(); renderAlertas(); renderEquipo(); renderSMA(); renderPendientes();
 }
 function goTab(id,el){
   document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
@@ -533,6 +600,21 @@ function renderAlertas(){
   else el.style.display='none';
 }
 
+// ─── TENDENCIA ───────────────────────────────────────────
+function tendencia(valActual, total, mesComp, anioComp){
+  if(!mesComp||!anioComp) return '';
+  var fdPrev=ALL.filter(function(r){return r.mes===mesComp&&r.source===anioComp;});
+  if(!fdPrev.length) return '';
+  var pPrev=getProy(fdPrev);
+  var tPrev=pPrev.length, cPrev=pPrev.filter(function(p){return p.done;}).length;
+  var pctPrev=tPrev>0?Math.round(cPrev/tPrev*100):0;
+  var pctAct=total>0?Math.round(valActual/total*100):0;
+  var diff=pctAct-pctPrev;
+  if(diff>0) return '<div class="ktend up">▲ +'+diff+'% vs '+mesComp.substring(0,3)+' '+anioComp+'</div>';
+  if(diff<0) return '<div class="ktend down">▼ '+diff+'% vs '+mesComp.substring(0,3)+' '+anioComp+'</div>';
+  return '<div class="ktend eq">= igual vs '+mesComp.substring(0,3)+' '+anioComp+'</div>';
+}
+
 // ─── RENDER PROYECTOS ────────────────────────────────────
 function render(){
   var fd=getF(), proyectos=getProy(fd);
@@ -541,9 +623,13 @@ function render(){
   var allR=[];fd.forEach(function(r){if(r.responsable&&allR.indexOf(r.responsable)<0)allR.push(r.responsable);});
   var sinSMA=proyectos.filter(function(p){return p.sma.length===0;}).length;
 
+  // Año de comparación: si vemos 2026 → comparar con 2025, si 2025 → sin comparación
+  var anioComp=anioSel==='2026'?'2025':null;
+  var tend=anioComp?tendencia(cP,tP,mesSel,anioComp):'';
+
   document.getElementById('kgrid').innerHTML=
     '<div class="kpi a"><div class="klabel">Proyectos</div><div class="kval">'+tP+'</div><div class="ksub">'+mesSel+' '+anioSel+'</div></div>'+
-    '<div class="kpi v"><div class="klabel">Completados</div><div class="kval">'+cP+'</div><div class="ksub">'+pct+'%</div></div>'+
+    '<div class="kpi v"><div class="klabel">Completados</div><div class="kval">'+cP+'</div><div class="ksub">'+pct+'%</div>'+tend+'</div>'+
     '<div class="kpi am"><div class="klabel">Pendientes</div><div class="kval">'+peP+'</div><div class="ksub">'+(100-pct)+'%</div></div>'+
     '<div class="kpi t"><div class="klabel">Responsables</div><div class="kval">'+allR.length+'</div><div class="ksub">activos</div></div>'+
     '<div class="kpi r"><div class="klabel">Sin resp. SMA</div><div class="kval">'+sinSMA+'</div><div class="ksub">proyectos</div></div>';
@@ -699,6 +785,161 @@ function renderSMA(){
     (sinS.length>0 ?
       '<div class="card"><div class="ctitle">Proyectos sin responsable SMA</div><div class="twrap"><table><thead><tr><th>Proyecto</th><th>Campaña</th><th>Resp. informe</th><th>Estado</th></tr></thead><tbody>'+sr+'</tbody></table></div></div>' :
       '<div class="alerta alerta-verde" style="margin-top:0;"><span class="alerta-icon">✅</span><div><strong>Todos los proyectos tienen responsable SMA asignado.</strong></div></div>');
+}
+
+// ─── PENDIENTES ──────────────────────────────────────────
+function renderPendientes(){
+  var fd = ALL.filter(function(r){ return r.mes===mesSel && r.source===anioSel && !r.completado; });
+  var lbl = document.getElementById('pend-mes-label');
+  if(lbl) lbl.textContent = mesSel+' '+anioSel;
+
+  var byR = {};
+  RESP_EQUIPO.forEach(function(n){ byR[n]=[]; });
+
+  fd.forEach(function(r){
+    if(!r.responsable) return;
+    if(!matchEquipo(r.responsable)) return;
+    var canon = canonEquipo(r.responsable);
+    byR[canon].push(r);
+  });
+
+  var cards = RESP_EQUIPO.map(function(nombre, idx){
+    var rows = byR[nombre];
+    var c = gc(nombre);
+    var colorClass = EQ_COLORS[idx % EQ_COLORS.length];
+    var badgeClass = rows.length === 0 ? 'cero' : '';
+    var badgeTxt = rows.length === 0 ? '✓ Al día' : rows.length+' pendiente'+(rows.length!==1?'s':'');
+
+    var items = rows.length === 0
+      ? '<div class="pend-empty">✓ Sin secciones pendientes</div>'
+      : rows.map(function(r){
+          return '<div class="pend-item">'+
+            '<span class="pend-item-icon">○</span>'+
+            '<div class="pend-item-text">'+
+              '<div class="pend-item-proy">'+r.proyecto+'</div>'+
+              '<div class="pend-item-secc">'+r.seccion+'</div>'+
+            '</div>'+
+          '</div>';
+        }).join('');
+
+    return '<div class="pend-card equipo-card '+colorClass+'">'+
+      '<div class="pend-card-header">'+
+        '<span class="av" style="background:'+c.bg+';color:'+c.fg+';">'+ini(nombre)+'</span>'+
+        '<span class="pend-nombre">'+nombre+'</span>'+
+        '<span class="pend-badge '+badgeClass+'">'+badgeTxt+'</span>'+
+      '</div>'+
+      '<div class="pend-lista">'+items+'</div>'+
+    '</div>';
+  }).join('');
+
+  var grid = document.getElementById('pend-grid');
+  if(grid) grid.innerHTML = cards;
+}
+
+// ─── VISTA ANUAL ─────────────────────────────────────────
+var anioAnual = '2026';
+function selAnio(a, el){
+  anioAnual = a;
+  document.querySelectorAll('.anio-btn').forEach(function(b){ b.classList.remove('on'); });
+  el.classList.add('on');
+  renderAnual();
+}
+function renderAnual(){
+  var data = ALL.filter(function(r){ return r.source===anioAnual; });
+  if(!data.length){
+    document.getElementById('anual-tabla').innerHTML='<div style="padding:30px;color:var(--suave);">Sin datos para '+anioAnual+'.</div>';
+    return;
+  }
+  // Meses disponibles en orden
+  var mesesDisp = MESES_ORD.filter(function(m){ return data.some(function(r){ return r.mes===m; }); });
+  // Proyectos únicos
+  var proyNombres = [];
+  data.forEach(function(r){ if(r.proyecto&&proyNombres.indexOf(r.proyecto)<0) proyNombres.push(r.proyecto); });
+  proyNombres.sort();
+
+  // Construir mapa: proyecto → mes → {tot, comp}
+  var mapa = {};
+  proyNombres.forEach(function(p){ mapa[p]={}; });
+  data.forEach(function(r){
+    if(!mapa[r.proyecto]) return;
+    if(!mapa[r.proyecto][r.mes]) mapa[r.proyecto][r.mes]={tot:0,comp:0};
+    mapa[r.proyecto][r.mes].tot++;
+    if(r.completado) mapa[r.proyecto][r.mes].comp++;
+  });
+
+  // Encabezado
+  var th = '<tr><th class="th-proy">Proyecto</th>';
+  mesesDisp.forEach(function(m){ th+='<th>'+m.substring(0,3)+'</th>'; });
+  th+='</tr>';
+
+  // Filas
+  var tbody='';
+  proyNombres.forEach(function(p){
+    tbody+='<tr><td class="td-proy">'+p+'</td>';
+    mesesDisp.forEach(function(m){
+      var v=mapa[p][m];
+      if(!v){ tbody+='<td><span class="mes-dot vacio">—</span></td>'; return; }
+      var pct=Math.round(v.comp/v.tot*100);
+      var cls=pct===100?'ok':pct>0?'parcial':'sin';
+      var lbl=pct===100?'✓':pct+'%';
+      tbody+='<td><span class="mes-dot '+cls+'" title="'+p+' · '+m+' · '+v.comp+'/'+v.tot+' secc." onclick="irAMes(\''+m+'\',\''+anioAnual+'\')">'+lbl+'</span></td>';
+    });
+    tbody+='</tr>';
+  });
+
+  // Fila resumen
+  tbody+='<tr class="total-row"><td class="td-proy" style="font-size:11px;color:var(--suave);">Total proyectos completados</td>';
+  mesesDisp.forEach(function(m){
+    var ps=getProy(data.filter(function(r){return r.mes===m;}));
+    var tot=ps.length, comp=ps.filter(function(p){return p.done;}).length;
+    var pct=tot>0?Math.round(comp/tot*100):0;
+    var cls=pct===100?'ok':pct>0?'parcial':'sin';
+    tbody+='<td><span class="mes-dot '+cls+'" style="width:36px;">'+comp+'/'+tot+'</span></td>';
+  });
+  tbody+='</tr>';
+
+  document.getElementById('anual-tabla').innerHTML=
+    '<table class="anual-table"><thead>'+th+'</thead><tbody>'+tbody+'</tbody></table>';
+}
+function irAMes(mes, anio){
+  // Cambiar mes seleccionado y navegar al tab proyectos
+  mesSel=mes; anioSel=anio;
+  // Actualizar botón mes
+  document.getElementById('mes-label').textContent=mes+' '+anio;
+  document.querySelectorAll('.mes-btn').forEach(function(b){ b.classList.remove('on'); });
+  render(); renderAlertas(); renderEquipo(); renderSMA(); renderPendientes(); buildSel();
+  // Ir a tab proyectos
+  var tabBtn = document.querySelector('.tab.active');
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.tc').forEach(function(t){ t.classList.remove('on'); });
+  document.querySelector('[onclick="goTab(\'proyectos\',this)"]').classList.add('active');
+  document.getElementById('tc-proyectos').classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ─── EXPORTAR CSV ─────────────────────────────────────────
+function exportarCSV(){
+  var fd = getF();
+  if(!fd.length){ alert('Sin datos para exportar.'); return; }
+  var cols = ['Proyecto','Campaña','Sección','Responsable','Completado','Ubicación','Resp. SMA','Mes','Año'];
+  var rows = [cols.join(',')];
+  fd.forEach(function(r){
+    rows.push([
+      '"'+(r.proyecto||'').replace(/"/g,'""')+'"',
+      '"'+(r.campanaNorm||r.campana||'').replace(/"/g,'""')+'"',
+      '"'+(r.seccion||'').replace(/"/g,'""')+'"',
+      '"'+(r.responsable||'').replace(/"/g,'""')+'"',
+      r.completado?'Sí':'No',
+      '"'+(r.ubicacion||'').replace(/"/g,'""')+'"',
+      '"'+(r.smaResp||'').replace(/"/g,'""')+'"',
+      r.mes, r.source
+    ].join(','));
+  });
+  var blob = new Blob(['﻿'+rows.join('\n')], {type:'text/csv;charset=utf-8;'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'informes_'+mesSel+'_'+anioSel+'.csv';
+  a.click();
 }
 
 // ─── INICIO ───────────────────────────────────────────────

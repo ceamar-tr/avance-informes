@@ -377,7 +377,15 @@
       <span class="flabel">Año:</span>
       <button class="anio-btn on" id="anio-btn-2026" onclick="selAnio('2026',this)">2026</button>
       <button class="anio-btn" id="anio-btn-2025" onclick="selAnio('2025',this)">2025</button>
-      <span style="font-size:11px;color:var(--suave);margin-left:8px;">Haz clic en un mes para ir directamente</span>
+      <span style="width:1px;height:20px;background:var(--borde);display:inline-block;margin:0 4px;"></span>
+      <span class="flabel">Vista:</span>
+      <button class="anio-btn on" id="vista-btn-matriz" onclick="selVistaAnual('matriz',this)">📊 Matriz</button>
+      <button class="anio-btn" id="vista-btn-gantt" onclick="selVistaAnual('gantt',this)">📅 Gantt</button>
+      <span style="width:1px;height:20px;background:var(--borde);display:inline-block;margin:0 4px;"></span>
+      <span class="flabel">Filtro:</span>
+      <button class="anio-btn on" id="filtro-btn-todos" onclick="selFiltroAnual('todos',this)">Todos</button>
+      <button class="anio-btn" id="filtro-btn-pendientes" onclick="selFiltroAnual('pendientes',this)">⏳ Con pendientes</button>
+      <span style="font-size:11px;color:var(--suave);margin-left:8px;" id="anual-hint">Haz clic en un mes para ir directamente</span>
     </div>
     <div class="anual-wrap">
       <div id="anual-tabla"><div class="loading"><div class="spin-lg"></div></div></div>
@@ -1050,9 +1058,29 @@ function renderPendientes(){
 
 // ─── VISTA ANUAL ─────────────────────────────────────────
 var anioAnual = '2026';
+var vistaAnual = 'matriz'; // 'matriz' | 'gantt'
+var filtroAnual = 'todos'; // 'todos' | 'pendientes'
 function selAnio(a, el){
   anioAnual = a;
-  document.querySelectorAll('.anio-btn').forEach(function(b){ b.classList.remove('on'); });
+  document.getElementById('anio-btn-2025').classList.remove('on');
+  document.getElementById('anio-btn-2026').classList.remove('on');
+  el.classList.add('on');
+  renderAnual();
+}
+function selVistaAnual(v, el){
+  vistaAnual = v;
+  document.getElementById('vista-btn-matriz').classList.remove('on');
+  document.getElementById('vista-btn-gantt').classList.remove('on');
+  el.classList.add('on');
+  document.getElementById('anual-hint').textContent = v==='gantt'
+    ? 'Cada barra muestra el avance del proyecto en ese mes'
+    : 'Haz clic en un mes para ir directamente';
+  renderAnual();
+}
+function selFiltroAnual(f, el){
+  filtroAnual = f;
+  document.getElementById('filtro-btn-todos').classList.remove('on');
+  document.getElementById('filtro-btn-pendientes').classList.remove('on');
   el.classList.add('on');
   renderAnual();
 }
@@ -1062,8 +1090,6 @@ function renderAnual(){
     document.getElementById('anual-tabla').innerHTML='<div style="padding:30px;color:var(--suave);">Sin datos para '+anioAnual+'.</div>';
     return;
   }
-  // Meses disponibles en orden
-  var mesesDisp = MESES_ORD.filter(function(m){ return data.some(function(r){ return r.mes===m; }); });
   // Proyectos únicos
   var proyNombres = [];
   data.forEach(function(r){ if(r.proyecto&&proyNombres.indexOf(r.proyecto)<0) proyNombres.push(r.proyecto); });
@@ -1079,15 +1105,30 @@ function renderAnual(){
     if(r.completado) mapa[r.proyecto][r.mes].comp++;
   });
 
-  // Encabezado
+  // Aplicar filtro: solo proyectos con algún mes incompleto
+  if(filtroAnual === 'pendientes'){
+    proyNombres = proyNombres.filter(function(p){
+      return Object.keys(mapa[p]).some(function(m){
+        var v = mapa[p][m]; return v.comp < v.tot;
+      });
+    });
+  }
+
+  if(vistaAnual === 'gantt'){
+    renderGantt(proyNombres, mapa);
+  } else {
+    renderMatriz(proyNombres, mapa, data);
+  }
+}
+
+function renderMatriz(proyNombres, mapa, data){
+  var mesesDisp = MESES_ORD.filter(function(m){ return data.some(function(r){ return r.mes===m; }); });
   var th = '<tr><th class="th-proy">Proyecto</th>';
   mesesDisp.forEach(function(m){ th+='<th>'+m.substring(0,3)+'</th>'; });
   th+='</tr>';
-
-  // Filas
   var tbody='';
   proyNombres.forEach(function(p){
-    tbody+='<tr><td class="td-proy">'+p+'</td>';
+    tbody+='<tr><td class="td-proy" style="border-left:3px solid '+getPrColor(p)+';">'+p+'</td>';
     mesesDisp.forEach(function(m){
       var v=mapa[p][m];
       if(!v){ tbody+='<td><span class="mes-dot vacio">—</span></td>'; return; }
@@ -1098,20 +1139,65 @@ function renderAnual(){
     });
     tbody+='</tr>';
   });
-
   // Fila resumen
+  var allData = ALL.filter(function(r){ return r.source===anioAnual; });
   tbody+='<tr class="total-row"><td class="td-proy" style="font-size:11px;color:var(--suave);">Total proyectos completados</td>';
   mesesDisp.forEach(function(m){
-    var ps=getProy(data.filter(function(r){return r.mes===m;}));
+    var ps=getProy(allData.filter(function(r){return r.mes===m;}));
     var tot=ps.length, comp=ps.filter(function(p){return p.done;}).length;
-    var pct=tot>0?Math.round(comp/tot*100):0;
-    var cls=pct===100?'ok':pct>0?'parcial':'sin';
+    var cls=tot>0&&comp===tot?'ok':comp>0?'parcial':'sin';
     tbody+='<td><span class="mes-dot '+cls+'" style="width:36px;">'+comp+'/'+tot+'</span></td>';
   });
   tbody+='</tr>';
-
   document.getElementById('anual-tabla').innerHTML=
     '<table class="anual-table"><thead>'+th+'</thead><tbody>'+tbody+'</tbody></table>';
+}
+
+function renderGantt(proyNombres, mapa){
+  // Todos los meses del año como columnas (o solo hasta hoy para 2026)
+  var mesesAll = anioAnual==='2026'
+    ? MESES_ORD.slice(0, new Date().getMonth()+1)
+    : MESES_ORD;
+
+  var th = '<tr><th class="th-proy" style="min-width:180px;">Proyecto</th>';
+  mesesAll.forEach(function(m){ th+='<th style="min-width:52px;">'+m.substring(0,3)+'</th>'; });
+  th += '<th style="min-width:60px;text-align:center;">Total</th></tr>';
+
+  var tbody = '';
+  proyNombres.forEach(function(p){
+    var mesesProy = mesesAll.filter(function(m){ return mapa[p][m]; });
+    var totSec=0, compSec=0;
+    Object.keys(mapa[p]).forEach(function(m){ totSec+=mapa[p][m].tot; compSec+=mapa[p][m].comp; });
+    var color = getPrColor(p);
+    tbody += '<tr><td class="td-proy" style="border-left:3px solid '+color+';">'+p+'</td>';
+    mesesAll.forEach(function(m){
+      var v = mapa[p][m];
+      if(!v){ tbody+='<td></td>'; return; }
+      var pct = Math.round(v.comp/v.tot*100);
+      var done = pct===100;
+      // Barra de progreso horizontal estilo Gantt
+      tbody += '<td style="padding:4px 3px;">'
+        + '<div title="'+p+' · '+m+' · '+v.comp+'/'+v.tot+' sec." onclick="irAMes(\''+m+'\',\''+anioAnual+'\')" '
+        + 'style="cursor:pointer;background:'+(done?'var(--verde-s)':'var(--amber-s)')+';border:1px solid '+(done?'var(--verde)':color)+';'
+        + 'border-radius:4px;height:24px;position:relative;overflow:hidden;min-width:44px;">'
+        + '<div style="position:absolute;left:0;top:0;height:100%;width:'+pct+'%;background:'+(done?'var(--verde)':color)+';opacity:0.35;transition:width .5s;"></div>'
+        + '<span style="position:relative;font-size:9px;font-weight:700;color:'+(done?'var(--verde)':color)+';line-height:24px;display:block;text-align:center;">'
+        + (done?'✓':pct+'%')+'</span>'
+        + '</div></td>';
+    });
+    // Columna resumen total
+    var tpct = totSec>0?Math.round(compSec/totSec*100):0;
+    tbody += '<td style="text-align:center;">'
+      + '<span class="pill '+(tpct===100?'p-ok':tpct>0?'p-parcial':'p-pend')+'">'+tpct+'%</span>'
+      + '</td></tr>';
+  });
+
+  if(!proyNombres.length){
+    tbody = '<tr><td colspan="'+(mesesAll.length+2)+'" style="padding:24px;color:var(--suave);text-align:center;">Sin proyectos con pendientes.</td></tr>';
+  }
+
+  document.getElementById('anual-tabla').innerHTML =
+    '<div style="overflow-x:auto;"><table class="anual-table" style="min-width:600px;"><thead>'+th+'</thead><tbody>'+tbody+'</tbody></table></div>';
 }
 function irAMes(mes, anio){
   // Cambiar mes seleccionado y navegar al tab proyectos

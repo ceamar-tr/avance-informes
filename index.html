@@ -186,6 +186,32 @@
   .pend-item-proy{font-weight:600;color:var(--azul);}
   .pend-item-secc{color:var(--suave);}
   .pend-empty{padding:12px 8px;font-size:12px;color:var(--verde);text-align:center;}
+  /* DÍAS RESTANTES */
+  .dias-badge{background:rgba(255,255,255,0.15);color:white;font-size:11px;padding:4px 11px;border-radius:20px;border:1px solid rgba(255,255,255,0.25);font-weight:600;}
+  .dias-badge.urgente{background:rgba(220,50,50,0.3);border-color:rgba(255,120,120,0.4);}
+  .dias-badge.ok{background:rgba(76,175,80,0.25);border-color:rgba(76,175,80,0.4);}
+  /* FILTRO RESPONSABLE */
+  .resp-chip{padding:4px 10px;border-radius:20px;font-size:11px;border:1px solid var(--borde);cursor:pointer;background:white;color:var(--suave);transition:all .2s;font-weight:500;display:inline-flex;align-items:center;gap:5px;}
+  .resp-chip:hover{border-color:var(--azul-c);color:var(--azul-c);}
+  .resp-chip.on{background:var(--azul-c);color:white;border-color:var(--azul-c);}
+  .resp-chip .av-xs{width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:6px;font-weight:700;}
+  /* HISTORIAL PROYECTO */
+  .hist-panel{background:white;border-radius:var(--r);padding:20px;box-shadow:var(--sombra);margin-bottom:18px;display:none;}
+  .hist-panel.visible{display:block;}
+  .hist-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;}
+  .hist-titulo{font-size:15px;font-weight:600;color:var(--azul);}
+  .hist-sub{font-size:12px;color:var(--suave);margin-top:2px;}
+  .hist-timeline{display:flex;flex-direction:column;gap:10px;}
+  .hist-mes{border:1px solid var(--borde);border-radius:10px;overflow:hidden;}
+  .hist-mes-header{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;background:var(--gris);transition:background .15s;}
+  .hist-mes-header:hover{background:#e8edf2;}
+  .hist-mes-label{font-size:12px;font-weight:600;color:var(--azul);flex:1;}
+  .hist-mes-pill{flex-shrink:0;}
+  .hist-mes-pct{font-size:11px;color:var(--suave);width:36px;text-align:right;}
+  .hist-mes-body{display:none;padding:8px 14px 12px;border-top:1px solid var(--borde);}
+  .hist-mes-body.open{display:block;}
+  .hist-secc{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:11px;border-bottom:1px solid #f5f5f5;}
+  .hist-secc:last-child{border-bottom:none;}
   @media(max-width:900px){.kgrid{grid-template-columns:repeat(2,1fr)}.proyectos-grid{grid-template-columns:1fr}.equipo-grid{grid-template-columns:repeat(2,1fr)}.pend-grid{grid-template-columns:1fr}.wrap{padding:14px}}
 </style>
 </head>
@@ -209,6 +235,7 @@
     </div>
   </div>
   <div class="hright">
+    <span class="dias-badge" id="dias-badge"></span>
     <span class="hbadge"><span class="dot"></span>2025 · Live</span>
     <span class="hbadge"><span class="dot"></span>2026 · Live</span>
   </div>
@@ -250,6 +277,8 @@
         <option value="">Todos los proyectos</option>
       </select>
       <button class="export-btn" onclick="exportarCSV()">⬇ Exportar CSV</button>
+      <span class="flabel" style="margin-left:4px;">Responsable:</span>
+      <div id="resp-chips" style="display:flex;gap:5px;flex-wrap:wrap;"></div>
       <span class="flabel" style="margin-left:4px;">Campaña:</span>
       <button class="fchip on" onclick="fCamp('Todas',this)">Todas</button>
       <button class="fchip" onclick="fCamp('Invierno',this)">Invierno</button>
@@ -267,6 +296,17 @@
         <button class="cerrar-btn" onclick="cerrarDetalle()">✕</button>
       </div>
       <div class="secc-lista" id="detalle-secciones"></div>
+    </div>
+    <!-- Panel historial proyecto -->
+    <div class="hist-panel" id="hist-panel">
+      <div class="hist-header">
+        <div>
+          <div class="hist-titulo" id="hist-titulo">—</div>
+          <div class="hist-sub" id="hist-sub">—</div>
+        </div>
+        <button class="cerrar-btn" onclick="cerrarHistorial()">✕</button>
+      </div>
+      <div class="hist-timeline" id="hist-timeline"></div>
     </div>
     <div class="proyectos-grid" id="proyectos-grid">
       <div class="loading"><div class="spin-lg"></div><span class="ltext">Cargando proyectos...</span></div>
@@ -369,7 +409,7 @@ function setCached(key, data){
 }
 
 // ─── ESTADO GLOBAL ───────────────────────────────────────
-var ALL = [], camp = 'Todas', mesSel = '', anioSel = '2026';
+var ALL = [], camp = 'Todas', mesSel = '', anioSel = '2026', respFiltro = '';
 
 // ─── FETCH con caché ──────────────────────────────────────
 function fetchSheet(id, sheetName, source){
@@ -590,8 +630,26 @@ function getF(){
   return ALL.filter(function(r){
     return r.mes===mesSel && r.source===anioSel &&
            (camp==='Todas'||r.campanaNorm===camp) &&
-           (q===''||r.proyecto.toLowerCase().indexOf(q)>=0);
+           (q===''||r.proyecto.toLowerCase().indexOf(q)>=0) &&
+           (respFiltro===''||normStr(r.responsable).toLowerCase()===normStr(respFiltro).toLowerCase());
   });
+}
+function fResp(v, el){
+  respFiltro = (respFiltro === v) ? '' : v; // toggle
+  document.querySelectorAll('.resp-chip').forEach(function(c){ c.classList.remove('on'); });
+  if(respFiltro) el.classList.add('on');
+  render();
+}
+function buildRespChips(){
+  var h = '';
+  RESP_EQUIPO.forEach(function(nombre){
+    var c = gc(nombre);
+    h += '<button class="resp-chip" onclick="fResp(\''+nombre+'\',this)">'+
+      '<span class="av-xs" style="background:'+c.bg+';color:'+c.fg+';">'+ini(nombre)+'</span>'+
+      nombre+'</button>';
+  });
+  var el = document.getElementById('resp-chips');
+  if(el) el.innerHTML = h;
 }
 
 // ─── ALERTAS ─────────────────────────────────────────────
@@ -670,7 +728,11 @@ function render(){
         '<div class="proy-prog-pct">'+p.pct+'%</div>'+
       '</div>'+
       '<div class="proy-secciones">'+seccTags+'</div>'+
-      '<div class="proy-footer"><div class="proy-avatares">'+avatares+'</div>'+estadoPill+'</div>'+
+      '<div class="proy-footer"><div class="proy-avatares">'+avatares+'</div>'+estadoPill+
+      '<button style="background:none;border:none;cursor:pointer;font-size:10px;color:var(--suave);padding:2px 6px;border-radius:6px;transition:color .2s;" '+
+        'onmouseover="this.style.color=\'var(--azul-c)\'" onmouseout="this.style.color=\'var(--suave)\'" '+
+        'onclick="event.stopPropagation();verHistorial(\''+safeNombre+'\')" title="Ver historial">📋 Historial</button>'+
+      '</div>'+
     '</div>';
   }).join('');
   document.getElementById('proyectos-grid').innerHTML=cards;
@@ -798,6 +860,88 @@ function renderSMA(){
     (sinS.length>0 ?
       '<div class="card"><div class="ctitle">Proyectos sin responsable SMA</div><div class="twrap"><table><thead><tr><th>Proyecto</th><th>Campaña</th><th>Resp. informe</th><th>Estado</th></tr></thead><tbody>'+sr+'</tbody></table></div></div>' :
       '<div class="alerta alerta-verde" style="margin-top:0;"><span class="alerta-icon">✅</span><div><strong>Todos los proyectos tienen responsable SMA asignado.</strong></div></div>');
+}
+
+// ─── DÍAS RESTANTES ──────────────────────────────────────
+function actualizarDias(){
+  var now = new Date();
+  var ultimo = new Date(now.getFullYear(), now.getMonth()+1, 0); // último día del mes
+  var dias = ultimo.getDate() - now.getDate();
+  var badge = document.getElementById('dias-badge');
+  if(!badge) return;
+  if(dias === 0){
+    badge.textContent = '¡Último día del mes!';
+    badge.className = 'dias-badge urgente';
+  } else if(dias <= 5){
+    badge.textContent = dias+' día'+(dias!==1?'s':'')+' para cierre';
+    badge.className = 'dias-badge urgente';
+  } else {
+    badge.textContent = dias+' días para cierre';
+    badge.className = 'dias-badge ok';
+  }
+}
+
+// ─── HISTORIAL DE PROYECTO ───────────────────────────────
+function verHistorial(nombre){
+  cerrarDetalle();
+  var rows = ALL.filter(function(r){ return r.proyecto===nombre; });
+  if(!rows.length) return;
+
+  // Agrupar por año+mes en orden cronológico
+  var grupos = {};
+  rows.forEach(function(r){
+    var k = r.source+'||'+r.mes;
+    if(!grupos[k]) grupos[k]={source:r.source, mes:r.mes, secciones:[]};
+    grupos[k].secciones.push(r);
+  });
+  // Ordenar cronológicamente
+  var orden = Object.keys(grupos).sort(function(a,b){
+    var ga=grupos[a], gb=grupos[b];
+    var ya=parseInt(ga.source), yb=parseInt(gb.source);
+    if(ya!==yb) return ya-yb;
+    return MESES_ORD.indexOf(ga.mes)-MESES_ORD.indexOf(gb.mes);
+  });
+
+  var campanas=[];
+  rows.forEach(function(r){ var cn=r.campanaNorm||r.campana; if(cn&&campanas.indexOf(cn)<0) campanas.push(cn); });
+
+  document.getElementById('hist-titulo').textContent = nombre;
+  document.getElementById('hist-sub').textContent = campanas.join(' · ')+' · '+orden.length+' mes'+(orden.length!==1?'es':'')+' con datos';
+
+  var timeline = orden.map(function(k, idx){
+    var g = grupos[k];
+    var tot = g.secciones.length;
+    var comp = g.secciones.filter(function(s){ return s.completado; }).length;
+    var pct = Math.round(comp/tot*100);
+    var estPill = comp===tot ? pill('✓ Completo','p-ok') : comp>0 ? pill(comp+'/'+tot+' secc.','p-parcial') : pill('Sin iniciar','p-pend');
+
+    var secciones = g.secciones.map(function(s){
+      var c = gc(s.responsable);
+      return '<div class="hist-secc">'+
+        '<span style="width:14px;text-align:center;font-size:11px;">'+(s.completado?'✓':'○')+'</span>'+
+        '<span style="flex:1;color:var(--texto);">'+s.seccion+'</span>'+
+        '<span class="av av-sm" style="background:'+c.bg+';color:'+c.fg+';" title="'+s.responsable+'">'+ini(s.responsable)+'</span>'+
+        '<span style="font-size:10px;color:var(--suave);">'+s.responsable+'</span>'+
+      '</div>';
+    }).join('');
+
+    return '<div class="hist-mes">'+
+      '<div class="hist-mes-header" onclick="this.nextElementSibling.classList.toggle(\'open\')">'+
+        '<span class="hist-mes-label">'+g.mes+' '+g.source+'</span>'+
+        '<span class="hist-mes-pill">'+estPill+'</span>'+
+        '<span class="hist-mes-pct">'+pct+'%</span>'+
+      '</div>'+
+      '<div class="hist-mes-body'+(idx===orden.length-1?' open':'')+'">'+secciones+'</div>'+
+    '</div>';
+  }).join('');
+
+  document.getElementById('hist-timeline').innerHTML = timeline;
+  var panel = document.getElementById('hist-panel');
+  panel.className = 'hist-panel visible';
+  panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+function cerrarHistorial(){
+  document.getElementById('hist-panel').className = 'hist-panel';
 }
 
 // ─── PENDIENTES ──────────────────────────────────────────
@@ -956,6 +1100,8 @@ function exportarCSV(){
 }
 
 // ─── INICIO ───────────────────────────────────────────────
+actualizarDias();
+buildRespChips();
 cargar();
 </script>
 </body>

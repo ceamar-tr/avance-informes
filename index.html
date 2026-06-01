@@ -314,7 +314,11 @@
 var S25 = '1U7iVGcQ0C1YqNeZak1rV4ld5P9XTsOjWxybkBvw5aXg';
 var S26 = '1hIBPoAE-zdTFc8v4ZMx0K9bzGTufOF_4nD8ERu4i7PM';
 var HOJAS_2025 = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-var HOJAS_2026 = ['Enero','Febrero','Marzo','Abril','Mayo'];
+// 2026: cargar solo hasta el mes actual para no hacer fetches innecesarios
+var HOJAS_2026 = (function(){
+  var mesActual = new Date().getMonth(); // 0=Enero … 11=Diciembre
+  return ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'].slice(0, mesActual + 1);
+})();
 var MESES_ORD  = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 var CACHE_TTL  = 15 * 60 * 1000; // 15 minutos
 
@@ -486,8 +490,17 @@ function getProy(rows){
   });
 }
 
-// ─── DETECTAR MES MÁS RECIENTE (bug var i corregido) ─────
+// ─── DETECTAR MES ACTUAL DEL CALENDARIO ──────────────────
 function detectRec(){
+  var now = new Date();
+  var mesCal = MESES_ORD[now.getMonth()];
+  var anioCal = String(now.getFullYear());
+
+  // 1. Intentar el mes actual del calendario (aunque la hoja esté vacía, es el correcto)
+  if(ALL.some(function(r){return r.source===anioCal;}) || anioCal==='2026'){
+    return{mes:mesCal, anio:anioCal};
+  }
+  // 2. Si no hay datos del año actual, buscar el mes más reciente con datos
   var i;
   for(i=MESES_ORD.length-1;i>=0;i--){
     if(ALL.some(function(r){return r.mes===MESES_ORD[i]&&r.source==='2026';}))
@@ -497,7 +510,7 @@ function detectRec(){
     if(ALL.some(function(r){return r.mes===MESES_ORD[i]&&r.source==='2025';}))
       return{mes:MESES_ORD[i],anio:'2025'};
   }
-  return{mes:'Enero',anio:'2026'};
+  return{mes:mesCal,anio:'2026'};
 }
 
 // ─── SELECTOR DE MES COLAPSABLE ──────────────────────────

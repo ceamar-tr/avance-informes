@@ -46,6 +46,9 @@
   [data-theme="dark"] .tab.active{background:var(--verde);}
   [data-theme="dark"] .tab:hover{background:var(--gris);}
   [data-theme="dark"] .p-parcial{background:#283593;color:#90caf9;}
+  [data-theme="dark"] .busq-hist{background:var(--card-bg);}
+  [data-theme="dark"] .busq-secc-row:nth-child(even){background:var(--gris);}
+  [data-theme="dark"] .busq-mes-label{background:var(--gris);}
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texto);min-height:100vh;font-size:14px;transition:background .3s,color .3s;}
   .header{background:linear-gradient(135deg,var(--verde) 0%,var(--azul) 100%);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.2);}
@@ -235,6 +238,20 @@
   .resp-chip:hover{border-color:var(--azul-c);color:var(--azul-c);}
   .resp-chip.on{background:var(--azul-c);color:white;border-color:var(--azul-c);}
   .resp-chip .av-xs{width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:6px;font-weight:700;}
+  /* BÚSQUEDA HISTÓRICA */
+  .busq-hist{background:var(--card-bg);border-radius:var(--r);padding:18px 20px;box-shadow:var(--sombra);margin-bottom:18px;display:none;border-left:4px solid var(--azul-c);}
+  .busq-hist.visible{display:block;}
+  .busq-hist-title{font-size:14px;font-weight:700;color:var(--azul);margin-bottom:4px;}
+  .busq-hist-sub{font-size:11px;color:var(--suave);margin-bottom:14px;}
+  .busq-proy-block{margin-bottom:18px;}
+  .busq-proy-nombre{font-size:13px;font-weight:700;color:var(--azul);margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid var(--borde);display:flex;align-items:center;gap:8px;}
+  .busq-proy-color{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+  .busq-mes-group{margin-bottom:10px;}
+  .busq-mes-label{font-size:11px;font-weight:700;color:var(--suave);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;padding:3px 8px;background:var(--gris);border-radius:6px;display:inline-block;}
+  .busq-secc-row{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;font-size:12px;}
+  .busq-secc-row:nth-child(even){background:var(--gris);}
+  .busq-secc-nombre{flex:1;font-weight:500;}
+  .busq-secc-resp{color:var(--suave);font-size:11px;display:flex;align-items:center;gap:4px;}
   /* HISTORIAL PROYECTO */
   .hist-panel{background:white;border-radius:var(--r);padding:20px;box-shadow:var(--sombra);margin-bottom:18px;display:none;}
   .hist-panel.visible{display:block;}
@@ -312,7 +329,7 @@
     <div class="controles">
       <div class="search-wrap">
         <span class="search-icon">🔍</span>
-        <input class="search-input" id="search-input" type="text" placeholder="Buscar proyecto..." oninput="render()">
+        <input class="search-input" id="search-input" type="text" placeholder="Buscar proyecto..." oninput="render();renderBusqHist()">
       </div>
       <select class="proyecto-select" id="proyecto-select" onchange="seleccionarProyecto(this.value)">
         <option value="">Todos los proyectos</option>
@@ -348,6 +365,17 @@
         <button class="cerrar-btn" onclick="cerrarHistorial()">✕</button>
       </div>
       <div class="hist-timeline" id="hist-timeline"></div>
+    </div>
+    <!-- Panel búsqueda histórica -->
+    <div class="busq-hist" id="busq-hist-panel">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+        <div>
+          <div class="busq-hist-title" id="busq-hist-title">Historial de búsqueda</div>
+          <div class="busq-hist-sub" id="busq-hist-sub"></div>
+        </div>
+        <button class="cerrar-btn" onclick="cerrarBusqHist()" title="Cerrar">✕</button>
+      </div>
+      <div id="busq-hist-body"></div>
     </div>
     <div class="proyectos-grid" id="proyectos-grid">
       <div class="loading"><div class="spin-lg"></div><span class="ltext">Cargando proyectos...</span></div>
@@ -826,6 +854,91 @@ function verDetalle(nombre){
 }
 function cerrarDetalle(){
   document.getElementById('detalle-panel').className='detalle-panel';
+}
+
+// ─── BÚSQUEDA HISTÓRICA ──────────────────────────────────
+function renderBusqHist(){
+  var panel = document.getElementById('busq-hist-panel');
+  var q = (document.getElementById('search-input')||{value:''}).value.toLowerCase().trim();
+  if(q.length < 2){ panel.className='busq-hist'; return; }
+
+  // Todos los registros que coincidan con la búsqueda (todos los años/meses)
+  var rows = ALL.filter(function(r){ return r.proyecto && r.proyecto.toLowerCase().indexOf(q) >= 0; });
+  if(!rows.length){ panel.className='busq-hist'; return; }
+
+  // Agrupar por proyecto → año+mes → secciones
+  var proyMap = {};
+  rows.forEach(function(r){
+    var k = r.proyecto;
+    if(!proyMap[k]) proyMap[k] = {};
+    var mk = r.source + '|' + r.mes;
+    if(!proyMap[k][mk]) proyMap[k][mk] = {anio:r.source, mes:r.mes, secciones:[]};
+    proyMap[k][mk].secciones.push(r);
+  });
+
+  var proyNombres = Object.keys(proyMap).sort();
+  var totalMeses = 0;
+  proyNombres.forEach(function(p){ totalMeses += Object.keys(proyMap[p]).length; });
+
+  document.getElementById('busq-hist-title').textContent =
+    'Historial: "'+q+'" — '+proyNombres.length+' proyecto'+(proyNombres.length!==1?'s':'')+' encontrado'+(proyNombres.length!==1?'s':'');
+  document.getElementById('busq-hist-sub').textContent =
+    totalMeses+' aparición'+(totalMeses!==1?'es':'')+' en total a través de todos los meses y años';
+
+  var html = '';
+  proyNombres.forEach(function(nombre){
+    var color = getPrColor(nombre);
+    html += '<div class="busq-proy-block">';
+    html += '<div class="busq-proy-nombre">';
+    html += '<span class="busq-proy-color" style="background:'+color+';"></span>';
+    html += nombre;
+    html += '</div>';
+
+    // Ordenar meses cronológicamente: 2025 primero, luego 2026; dentro de cada año por orden de MESES_ORD
+    var mKeys = Object.keys(proyMap[nombre]).sort(function(a,b){
+      var da = proyMap[nombre][a], db = proyMap[nombre][b];
+      if(da.anio !== db.anio) return da.anio < db.anio ? -1 : 1;
+      return MESES_ORD.indexOf(da.mes) - MESES_ORD.indexOf(db.mes);
+    });
+
+    mKeys.forEach(function(mk){
+      var grupo = proyMap[nombre][mk];
+      var comp = grupo.secciones.filter(function(s){return s.completado;}).length;
+      var tot = grupo.secciones.length;
+      var pct = Math.round(comp/tot*100);
+      var estadoCls = pct===100?'p-ok':pct>0?'p-parcial':'p-pend';
+      html += '<div class="busq-mes-group">';
+      html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">';
+      html += '<span class="busq-mes-label">'+grupo.mes+' '+grupo.anio+'</span>';
+      html += '<span class="pill '+estadoCls+'">'+comp+'/'+tot+' secciones</span>';
+      html += '<button onclick="irAMes(\''+grupo.mes+'\',\''+grupo.anio+'\')" '
+        + 'style="background:none;border:1px solid var(--borde);border-radius:10px;font-size:10px;'
+        + 'padding:2px 8px;cursor:pointer;color:var(--suave);font-family:\'DM Sans\',sans-serif;" '
+        + 'title="Ir a este mes">↗ Ver mes</button>';
+      html += '</div>';
+      grupo.secciones.forEach(function(s){
+        var c = gc(s.responsable||'');
+        html += '<div class="busq-secc-row">';
+        html += '<span class="secc-status" style="font-size:12px;">'+(s.completado?'✓':'○')+'</span>';
+        html += '<span class="busq-secc-nombre">'+s.seccion+'</span>';
+        html += '<span class="busq-secc-resp">';
+        html += '<span class="av" style="width:18px;height:18px;font-size:7px;background:'+c.bg+';color:'+c.fg+';border:none;">'+ini(s.responsable||'')+'</span>';
+        html += (s.responsable||'—');
+        html += '</span>';
+        html += '</div>';
+      });
+      html += '</div>';
+    });
+    html += '</div>';
+  });
+
+  document.getElementById('busq-hist-body').innerHTML = html;
+  panel.className = 'busq-hist visible';
+}
+function cerrarBusqHist(){
+  document.getElementById('busq-hist-panel').className='busq-hist';
+  document.getElementById('search-input').value='';
+  render();
 }
 
 // ─── EQUIPO ───────────────────────────────────────────────

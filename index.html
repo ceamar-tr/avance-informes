@@ -250,7 +250,7 @@
   .busq-mes-label{font-size:11px;font-weight:700;color:var(--suave);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;padding:3px 8px;background:var(--gris);border-radius:6px;display:inline-block;}
   .busq-secc-row{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;font-size:12px;}
   .busq-secc-row:nth-child(even){background:var(--gris);}
-  .busq-secc-nombre{flex:1;font-weight:500;}
+  .busq-secc-nombre{font-weight:500;margin-right:6px;}
   .busq-secc-resp{color:var(--suave);font-size:11px;display:flex;align-items:center;gap:4px;}
   /* HISTORIAL PROYECTO */
   .hist-panel{background:white;border-radius:var(--r);padding:20px;box-shadow:var(--sombra);margin-bottom:18px;display:none;}
@@ -871,8 +871,8 @@ function renderBusqHist(){
   rows.forEach(function(r){
     var k = r.proyecto;
     if(!proyMap[k]) proyMap[k] = {};
-    var mk = r.source + '|' + r.mes;
-    if(!proyMap[k][mk]) proyMap[k][mk] = {anio:r.source, mes:r.mes, secciones:[]};
+    var mk = r.source + '|' + r.mes + '|' + (r.campanaNorm||r.campana||'');
+    if(!proyMap[k][mk]) proyMap[k][mk] = {anio:r.source, mes:r.mes, campana:r.campanaNorm||r.campana||'', secciones:[]};
     proyMap[k][mk].secciones.push(r);
   });
 
@@ -908,8 +908,9 @@ function renderBusqHist(){
       var pct = Math.round(comp/tot*100);
       var estadoCls = pct===100?'p-ok':pct>0?'p-parcial':'p-pend';
       html += '<div class="busq-mes-group">';
-      html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">';
+      html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap;">';
       html += '<span class="busq-mes-label">'+grupo.mes+' '+grupo.anio+'</span>';
+      if(grupo.campana) html += '<span style="font-size:11px;font-weight:600;color:var(--azul-c);background:var(--azul-s);padding:2px 8px;border-radius:10px;">'+grupo.campana+'</span>';
       html += '<span class="pill '+estadoCls+'">'+comp+'/'+tot+' secciones</span>';
       html += '<button onclick="irAMes(\''+grupo.mes+'\',\''+grupo.anio+'\')" '
         + 'style="background:none;border:1px solid var(--borde);border-radius:10px;font-size:10px;'
@@ -919,11 +920,11 @@ function renderBusqHist(){
       grupo.secciones.forEach(function(s){
         var c = gc(s.responsable||'');
         html += '<div class="busq-secc-row">';
-        html += '<span class="secc-status" style="font-size:12px;">'+(s.completado?'✓':'○')+'</span>';
+        html += '<span class="secc-status" style="font-size:12px;flex-shrink:0;">'+(s.completado?'✓':'○')+'</span>';
         html += '<span class="busq-secc-nombre">'+s.seccion+'</span>';
-        html += '<span class="busq-secc-resp">';
+        html += '<span class="busq-secc-resp" style="flex-shrink:0;">';
         html += '<span class="av" style="width:18px;height:18px;font-size:7px;background:'+c.bg+';color:'+c.fg+';border:none;">'+ini(s.responsable||'')+'</span>';
-        html += (s.responsable||'—');
+        html += '<strong style="color:var(--texto);">'+(s.responsable||'—')+'</strong>';
         html += '</span>';
         html += '</div>';
       });

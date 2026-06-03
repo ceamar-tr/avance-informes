@@ -351,7 +351,6 @@
       <select class="proyecto-select" id="proyecto-select" onchange="seleccionarProyecto(this.value)">
         <option value="">Todos los proyectos</option>
       </select>
-      <button class="export-btn" onclick="exportarCSV()">⬇ Exportar CSV</button>
       <span class="flabel" style="margin-left:4px;">Responsable:</span>
       <div id="resp-chips" style="display:flex;gap:5px;flex-wrap:wrap;"></div>
       <span class="flabel" style="margin-left:4px;">Campaña:</span>
@@ -493,18 +492,18 @@ var PROY_PALETTE = ['#1565c0','#2e7d32','#e65100','#6a1b9a','#00695c','#c62828',
 var proyColorMap = {}, proyColorIdx = 0;
 function getPrColor(nombre){ if(!nombre) return PROY_PALETTE[0]; var k=nombre.trim(); if(!proyColorMap[k]){proyColorMap[k]=PROY_PALETTE[proyColorIdx%PROY_PALETTE.length];proyColorIdx++;} return proyColorMap[k]; }
 
-// Tamaño de fuente
-var FONT_SIZES = [12, 14, 16, 18, 20];
-var fontIdx = 1; // default 14px
+// Tamaño de fuente (zoom sobre el contenido)
+var ZOOM_LEVELS = [0.85, 1, 1.15, 1.3, 1.5];
+var zoomIdx = 1;
 function cambiarFuente(dir){
-  fontIdx = Math.max(0, Math.min(FONT_SIZES.length-1, fontIdx+dir));
-  document.body.style.fontSize = FONT_SIZES[fontIdx]+'px';
-  try{ localStorage.setItem('ceamar_font', fontIdx); }catch(e){}
+  zoomIdx = Math.max(0, Math.min(ZOOM_LEVELS.length-1, zoomIdx+dir));
+  document.querySelector('.wrap').style.zoom = ZOOM_LEVELS[zoomIdx];
+  try{ localStorage.setItem('ceamar_zoom', zoomIdx); }catch(e){}
 }
 document.addEventListener('DOMContentLoaded',function(){
   try{
-    var fi = parseInt(localStorage.getItem('ceamar_font'));
-    if(!isNaN(fi) && fi>=0 && fi<FONT_SIZES.length){ fontIdx=fi; document.body.style.fontSize=FONT_SIZES[fontIdx]+'px'; }
+    var zi = parseInt(localStorage.getItem('ceamar_zoom'));
+    if(!isNaN(zi) && zi>=0 && zi<ZOOM_LEVELS.length){ zoomIdx=zi; document.querySelector('.wrap').style.zoom=ZOOM_LEVELS[zoomIdx]; }
   }catch(e){}
 });
 

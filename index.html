@@ -308,6 +308,10 @@
     <span class="dias-badge" id="dias-badge"></span>
     <span class="hbadge"><span class="dot"></span>2025 · Live</span>
     <span class="hbadge"><span class="dot"></span>2026 · Live</span>
+    <div style="display:flex;align-items:center;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:20px;overflow:hidden;">
+      <button onclick="cambiarFuente(-1)" title="Letra más pequeña" style="background:none;border:none;border-right:1px solid rgba(255,255,255,0.2);color:white;padding:4px 10px;cursor:pointer;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif;">A−</button>
+      <button onclick="cambiarFuente(1)" title="Letra más grande" style="background:none;border:none;color:white;padding:4px 10px;cursor:pointer;font-size:15px;font-weight:700;font-family:'DM Sans',sans-serif;">A+</button>
+    </div>
     <button onclick="toggleDark()" id="dark-btn" title="Modo oscuro" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:white;border-radius:20px;padding:4px 12px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;">🌙</button>
   </div>
 </div>
@@ -488,6 +492,21 @@ function pill(t,c){return '<span class="pill '+c+'">'+t+'</span>';}
 var PROY_PALETTE = ['#1565c0','#2e7d32','#e65100','#6a1b9a','#00695c','#c62828','#0277bd','#f57f17','#558b2f','#283593','#00838f','#6d4c41'];
 var proyColorMap = {}, proyColorIdx = 0;
 function getPrColor(nombre){ if(!nombre) return PROY_PALETTE[0]; var k=nombre.trim(); if(!proyColorMap[k]){proyColorMap[k]=PROY_PALETTE[proyColorIdx%PROY_PALETTE.length];proyColorIdx++;} return proyColorMap[k]; }
+
+// Tamaño de fuente
+var FONT_SIZES = [12, 14, 16, 18, 20];
+var fontIdx = 1; // default 14px
+function cambiarFuente(dir){
+  fontIdx = Math.max(0, Math.min(FONT_SIZES.length-1, fontIdx+dir));
+  document.body.style.fontSize = FONT_SIZES[fontIdx]+'px';
+  try{ localStorage.setItem('ceamar_font', fontIdx); }catch(e){}
+}
+document.addEventListener('DOMContentLoaded',function(){
+  try{
+    var fi = parseInt(localStorage.getItem('ceamar_font'));
+    if(!isNaN(fi) && fi>=0 && fi<FONT_SIZES.length){ fontIdx=fi; document.body.style.fontSize=FONT_SIZES[fontIdx]+'px'; }
+  }catch(e){}
+});
 
 // Dark mode
 function toggleDark(){

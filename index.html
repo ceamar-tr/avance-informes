@@ -832,7 +832,10 @@ function render(){
   var tP=proyectos.length,cP=proyectos.filter(function(p){return p.done;}).length,peP=tP-cP;
   var pct=tP>0?Math.round(cP/tP*100):0;
   var allR=[];fd.forEach(function(r){if(r.responsable&&allR.indexOf(r.responsable)<0)allR.push(r.responsable);});
-  var sinSMA=proyectos.filter(function(p){return p.sma.length===0;}).length;
+  // Planilla SMA incompleta = alguna sección no tiene smaResp
+  var sinSMA=proyectos.filter(function(p){
+    return p.secciones.some(function(s){ return !s.smaResp||!s.smaResp.trim(); });
+  }).length;
 
   // Año de comparación: si vemos 2026 → comparar con 2025, si 2025 → sin comparación
   var anioComp=anioSel==='2026'?'2025':null;
@@ -843,7 +846,7 @@ function render(){
     '<div class="kpi v"><div class="klabel">Completados</div><div class="kval">'+cP+'</div><div class="ksub">'+pct+'%</div>'+tend+'</div>'+
     '<div class="kpi am"><div class="klabel">Pendientes</div><div class="kval">'+peP+'</div><div class="ksub">'+(100-pct)+'%</div></div>'+
     '<div class="kpi t"><div class="klabel">Responsables</div><div class="kval">'+allR.length+'</div><div class="ksub">activos</div></div>'+
-    '<div class="kpi r"><div class="klabel">Sin resp. SMA</div><div class="kval">'+sinSMA+'</div><div class="ksub">proyectos</div></div>';
+    '<div class="kpi r"><div class="klabel">Planilla SMA incompleta</div><div class="kval">'+sinSMA+'</div><div class="ksub">con secc. sin asignar</div></div>';
 
   if(!proyectos.length){
     document.getElementById('proyectos-grid').innerHTML='<div style="padding:40px;color:var(--suave);text-align:center;grid-column:1/-1;">No se encontraron proyectos con los filtros actuales.</div>';
@@ -1147,25 +1150,80 @@ function toggleEquipoDetalle(btn){
 
 // ─── SMA ─────────────────────────────────────────────────
 function renderSMA(){
-  var allP = getProy(ALL.filter(function(r){ return r.mes===mesSel && r.source===anioSel; }));
-  var sinS = allP.filter(function(p){ return p.sma.length===0; });
-  var conS = allP.filter(function(p){ return p.sma.length>0; });
-  var sr = sinS.map(function(p){
-    return '<tr>'+
-      '<td style="font-weight:600;color:var(--azul);">'+p.proyecto+'</td>'+
-      '<td style="font-size:11px;color:var(--suave);">'+p.campana+'</td>'+
-      '<td style="font-size:11px;">'+p.resp.join(', ')+'</td>'+
-      '<td>'+(p.done?pill('✓ Completo','p-ok'):p.comp>0?pill(p.comp+'/'+p.tot,'p-parcial'):pill('Sin iniciar','p-pend'))+'</td>'+
-    '</tr>';
+  var fd = ALL.filter(function(r){ return r.mes===mesSel && r.source===anioSel; });
+  if(!fd.length){
+    document.getElementById('sma-content').innerHTML='<div style="padding:40px;color:var(--suave);text-align:center;">Sin datos para '+mesSel+' '+anioSel+'.</div>';
+    return;
+  }
+
+  // Agrupar secciones por proyecto
+  var proyMap = {};
+  fd.forEach(function(r){
+    var k = r.proyecto;
+    if(!proyMap[k]) proyMap[k]={proyecto:k, campana:r.campanaNorm||r.campana||'', secciones:[], color:getPrColor(k)};
+    proyMap[k].secciones.push(r);
+  });
+
+  var proyectos = Object.keys(proyMap).sort().map(function(k){ return proyMap[k]; });
+
+  // Para cada proyecto: sección completa SMA = tiene smaResp no vacío
+  var totalCompletas=0, totalSecciones=0;
+  proyectos.forEach(function(p){
+    p.seccConSMA = p.secciones.filter(function(s){ return s.smaResp && s.smaResp.trim(); }).length;
+    p.seccTotal  = p.secciones.length;
+    p.smaCompleto = p.seccConSMA === p.seccTotal;
+    p.smaPct = p.seccTotal > 0 ? Math.round(p.seccConSMA/p.seccTotal*100) : 0;
+    totalCompletas += p.seccConSMA;
+    totalSecciones += p.seccTotal;
+  });
+
+  var proyCompletos = proyectos.filter(function(p){ return p.smaCompleto; }).length;
+  var proyPendientes = proyectos.length - proyCompletos;
+
+  // KPIs
+  var kpis = '<div style="display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap;">'
+    +'<div class="kpi a" style="flex:1;min-width:140px;"><div class="klabel">Proyectos SMA</div><div class="kval">'+proyectos.length+'</div><div class="ksub">'+mesSel+' '+anioSel+'</div></div>'
+    +'<div class="kpi v" style="flex:1;min-width:140px;"><div class="klabel">Planillas completas</div><div class="kval">'+proyCompletos+'</div><div class="ksub">todas las secciones asignadas</div></div>'
+    +'<div class="kpi r" style="flex:1;min-width:140px;"><div class="klabel">Con secciones sin asignar</div><div class="kval">'+proyPendientes+'</div><div class="ksub">'+(totalSecciones-totalCompletas)+' secc. sin responsable</div></div>'
+    +'</div>';
+
+  // Tarjetas por proyecto
+  var cards = proyectos.map(function(p){
+    var color = p.color;
+    var barColor = p.smaCompleto ? '#1a5c2e' : p.smaPct>0 ? '#f57c00' : '#e0e0e0';
+    var estadoPill = p.smaCompleto
+      ? pill('✓ Planilla completa','p-ok')
+      : p.seccConSMA>0
+        ? pill(p.seccConSMA+'/'+p.seccTotal+' asignadas','p-parcial')
+        : pill('Sin asignar','p-pend');
+
+    var seccRows = p.secciones.map(function(s){
+      var tieneResp = s.smaResp && s.smaResp.trim();
+      var c = tieneResp ? gc(s.smaResp) : {bg:'#f5f5f5',fg:'#bbb'};
+      return '<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;font-size:12px;'+(tieneResp?'':'background:var(--rojo-s);')+'">'
+        +'<span style="font-size:11px;width:14px;text-align:center;color:'+(tieneResp?'var(--verde)':'var(--rojo)+\'\'')+';">'+(tieneResp?'✓':'○')+'</span>'
+        +'<span style="flex:1;font-weight:500;color:var(--texto);">'+s.seccion+'</span>'
+        +(tieneResp
+          ? '<span class="av av-sm" style="background:'+c.bg+';color:'+c.fg+';">'+ini(s.smaResp)+'</span>'
+            +'<span style="font-size:11px;color:var(--suave);">'+s.smaResp+'</span>'
+          : '<span style="font-size:11px;color:var(--rojo);font-weight:600;">Sin responsable SMA</span>')
+        +'</div>';
+    }).join('');
+
+    return '<div class="proy-card" style="border-left-color:'+color+';cursor:default;">'
+      +'<div class="proy-nombre">'+p.proyecto+'</div>'
+      +'<div class="proy-campana">'+p.campana+' · '+mesSel+' '+anioSel+'</div>'
+      +'<div class="proy-prog-wrap">'
+        +'<div class="proy-prog-bar"><div class="proy-prog-fill" style="width:'+p.smaPct+'%;background:'+barColor+';"></div></div>'
+        +'<div class="proy-prog-pct">'+p.smaPct+'%</div>'
+      +'</div>'
+      +'<div style="display:flex;flex-direction:column;gap:3px;margin-bottom:10px;">'+seccRows+'</div>'
+      +'<div style="text-align:right;">'+estadoPill+'</div>'
+      +'</div>';
   }).join('');
-  document.getElementById('sma-content').innerHTML=
-    '<div style="display:flex;gap:12px;margin-bottom:14px;">'+
-      '<div class="kpi v" style="flex:1;"><div class="klabel">Con resp. SMA</div><div class="kval">'+conS.length+'</div></div>'+
-      '<div class="kpi r" style="flex:1;"><div class="klabel">Sin resp. SMA</div><div class="kval">'+sinS.length+'</div></div>'+
-    '</div>'+
-    (sinS.length>0 ?
-      '<div class="card"><div class="ctitle">Proyectos sin responsable SMA</div><div class="twrap"><table><thead><tr><th>Proyecto</th><th>Campaña</th><th>Resp. informe</th><th>Estado</th></tr></thead><tbody>'+sr+'</tbody></table></div></div>' :
-      '<div class="alerta alerta-verde" style="margin-top:0;"><span class="alerta-icon">✅</span><div><strong>Todos los proyectos tienen responsable SMA asignado.</strong></div></div>');
+
+  document.getElementById('sma-content').innerHTML = kpis
+    +'<div class="proyectos-grid">'+cards+'</div>';
 }
 
 // ─── DÍAS RESTANTES ──────────────────────────────────────

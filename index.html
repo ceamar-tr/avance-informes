@@ -531,30 +531,43 @@ var CLIENTES_CONFIG = {
 };
 
 // Mapeo proyecto → cliente
+// Normaliza nombres inconsistentes de la planilla al nombre canónico
+var NOMBRE_CANONICO = {
+  'TECK CDA':       'Teck CDA',
+  'TECK CDA EXTRA': 'Teck CDA Extra',
+  'Extra':          'Teck CDA Extra',
+  'PS-13 QB2':      'Teck QB2 PS13',
+  'QB2 PS12':       'Teck QB2 PS12',
+  'QB2 PS14':       'Teck QB2 PS14',
+  'Teck QB2 PS12':  'Teck QB2 PS12',
+  'Teck QB2 PS14':  'Teck QB2 PS14',
+};
+function normalizarProyecto(nombre){
+  if(!nombre) return nombre;
+  var t = nombre.trim();
+  return NOMBRE_CANONICO[t] || t;
+}
+
 var PROYECTO_CLIENTE = {
-  'Aguas del Altiplano':                                    'Aguas del Altiplano',
-  'Candelaria NUEVO PVA':                                   'Lundin Mining',
-  'Cenizas':                                                'Grupo Minero Las Cenizas',
-  'Centinela':                                              'Antofagasta Minerals',
-  'Chapaco':                                                'CMP',
-  'Cruz Grande':                                            'CMP',
-  'Guacolda II':                                            'CMP',
-  'Puerto Punta Totoralillo':                               'CMP',
-  'Econssa':                                                'Econssa',
-  'LB BHP':                                                 'BHP',
-  'Manto Verde':                                            'Capstone Copper',
-  'Santo Domingo LB':                                       'Capstone Copper',
-  'Patilllo (Sal Lobos)':                                   'Sal Lobos',
-  'Extra':                                                  'Teck',
-  'PS-13 QB2':                                              'Teck',
-  'QB2 PS12':                                               'Teck',
-  'QB2 PS14':                                               'Teck',
-  'TECK CDA':                                               'Teck',
-  'TECK CDA EXTRA':                                         'Teck',
-  'Teck CDA':                                               'Teck',
-  'Teck QB2':                                               'Teck',
-  'Teck QB2 PS12':                                          'Teck',
-  'Teck QB2 PS14':                                          'Teck',
+  'Aguas del Altiplano':      'Aguas del Altiplano',
+  'Candelaria NUEVO PVA':     'Lundin Mining',
+  'Cenizas':                  'Grupo Minero Las Cenizas',
+  'Centinela':                'Antofagasta Minerals',
+  'Chapaco':                  'CMP',
+  'Cruz Grande':              'CMP',
+  'Guacolda II':              'CMP',
+  'Puerto Punta Totoralillo': 'CMP',
+  'Econssa':                  'Econssa',
+  'LB BHP':                   'BHP',
+  'Manto Verde':              'Capstone Copper',
+  'Santo Domingo LB':         'Capstone Copper',
+  'Patilllo (Sal Lobos)':     'Sal Lobos',
+  'Teck CDA':                 'Teck',
+  'Teck CDA Extra':           'Teck',
+  'Teck QB2':                 'Teck',
+  'Teck QB2 PS12':            'Teck',
+  'Teck QB2 PS13':            'Teck',
+  'Teck QB2 PS14':            'Teck',
 };
 var HOJAS_2025 = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 // 2026: cargar solo hasta el mes actual para no hacer fetches innecesarios
@@ -701,7 +714,7 @@ function fetchSheet(id, sheetName, source){
         var smaResp     = String(cv(iSMA)||'').trim();
         var campaNorm   = String(cv(iCN) ||'').trim();
         var anio        = cv(iA)?String(cv(iA)).trim():'';
-        if(proyecto)  pA=proyecto;
+        if(proyecto)  pA=normalizarProyecto(proyecto);
         if(campana)   cA=campana;
         if(campaNorm) cnA=campaNorm;
         if(anio)      aA=anio;

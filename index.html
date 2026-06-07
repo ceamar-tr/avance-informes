@@ -324,13 +324,11 @@
 <div class="header">
   <div class="header-left">
     <div class="logo-wrap">
-      <svg width="110" height="44" viewBox="0 0 110 44" xmlns="http://www.w3.org/2000/svg" style="display:block;">
-        <!-- CEAMAR text -->
+      <img src="logos/CEAMAR.jpg" alt="CEAMAR" style="height:40px;width:auto;display:block;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+      <svg width="110" height="44" viewBox="0 0 110 44" xmlns="http://www.w3.org/2000/svg" style="display:none;">
         <text x="4" y="18" font-family="Arial Black,Arial,sans-serif" font-size="18" font-weight="900" fill="#1a7a2e" letter-spacing="1">CEA</text>
         <text x="47" y="18" font-family="Arial Black,Arial,sans-serif" font-size="18" font-weight="900" fill="#1565c0" letter-spacing="1">MAR</text>
-        <!-- wave/brush stroke -->
         <path d="M8 26 Q20 20 35 26 Q55 34 75 24 Q90 16 104 22" stroke="#1565c0" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.85"/>
-        <!-- ESTUDIOS AMBIENTALES -->
         <text x="55" y="41" font-family="Arial,sans-serif" font-size="7" font-weight="700" fill="#1565c0" text-anchor="middle" letter-spacing="0.8">ESTUDIOS AMBIENTALES</text>
       </svg>
     </div>
@@ -515,24 +513,48 @@ var APPS_SCRIPT_URL_2026 = 'https://script.google.com/macros/s/AKfycbzTUElhO7ULQ
 var APPS_SCRIPT_URL_2025 = 'https://script.google.com/macros/s/AKfycbxxfAtqXHnG0lixNFYB9hdpmOv_jmw82RiCR07byTPZrILXfXfl56epte9LiAZFj96j7g/exec';
 
 // ─── LOGOS DE CLIENTES ───────────────────────────────────
-// Sube los logos a una carpeta /logos/ en el repositorio de GitHub.
-// Ejemplo: logos/teck.png, logos/bhp.png, logos/cap.png
-// Formato: 'Nombre del cliente': { logo: 'logos/archivo.png', color: '#hexcolor' }
+// Logos: sube archivos a /logos/ en el repo de GitHub.
+// Nombres sugeridos: teck.png, bhp.png, cmp.png, capstone.png,
+//   lundin.png, cenizas.png, antofagasta.png, econssa.png,
+//   sal-lobos.png, aguas-altiplano.png
 var CLIENTES_CONFIG = {
-  // 'TECK':  { logo: 'logos/teck.png',  color: '#1565c0' },
-  // 'BHP':   { logo: 'logos/bhp.png',   color: '#e65100' },
-  // 'CAP':   { logo: 'logos/cap.png',   color: '#2e7d32' },
-  // 'CODELCO': { logo: 'logos/codelco.png', color: '#c62828' },
+  'Teck':                      { logo: 'logos/teck.png',            color: '#005a8b' },
+  'BHP':                       { logo: 'logos/bhp.png',             color: '#ef7d00' },
+  'CMP':                       { logo: 'logos/cmp.png',             color: '#1a237e' },
+  'Capstone Copper':           { logo: 'logos/capstone.jpeg',       color: '#b94a00' },
+  'Lundin Mining':             { logo: 'logos/lundin.jpg',          color: '#8b4513' },
+  'Grupo Minero Las Cenizas':  { logo: 'logos/cenizas.png',         color: '#555555' },
+  'Antofagasta Minerals':      { logo: 'logos/antofagasta.png',     color: '#003087' },
+  'Econssa':                   { logo: 'logos/econssa.png',         color: '#2e7d32' },
+  'Sal Lobos':                 { logo: 'logos/sal-lobos.png',       color: '#00838f' },
+  'Aguas del Altiplano':       { logo: 'logos/aguas-altiplano.jpeg',color: '#0288d1' },
 };
 
-// Asocia cada proyecto a su cliente
-// Formato: 'Nombre exacto del proyecto': 'Nombre del cliente'
+// Mapeo proyecto → cliente
 var PROYECTO_CLIENTE = {
-  // 'Cruz Grande':               'TECK',
-  // 'QB2 PS14':                  'TECK',
-  // 'Santo Domingo LB':          'BHP',
-  // 'Puerto Punta Totoralillo':  'CAP',
-  // Completar con todos los proyectos...
+  'Aguas del Altiplano':                                    'Aguas del Altiplano',
+  'Candelaria NUEVO PVA':                                   'Lundin Mining',
+  'Cenizas':                                                'Grupo Minero Las Cenizas',
+  'Centinela':                                              'Antofagasta Minerals',
+  'Chapaco':                                                'CMP',
+  'Cruz Grande':                                            'CMP',
+  'Guacolda II':                                            'CMP',
+  'Puerto Punta Totoralillo':                               'CMP',
+  'Econssa':                                                'Econssa',
+  'LB BHP':                                                 'BHP',
+  'Manto Verde':                                            'Capstone Copper',
+  'Santo Domingo LB':                                       'Capstone Copper',
+  'Patilllo (Sal Lobos)':                                   'Sal Lobos',
+  'Extra':                                                  'Teck',
+  'PS-13 QB2':                                              'Teck',
+  'QB2 PS12':                                               'Teck',
+  'QB2 PS14':                                               'Teck',
+  'TECK CDA':                                               'Teck',
+  'TECK CDA EXTRA':                                         'Teck',
+  'Teck CDA':                                               'Teck',
+  'Teck QB2':                                               'Teck',
+  'Teck QB2 PS12':                                          'Teck',
+  'Teck QB2 PS14':                                          'Teck',
 };
 var HOJAS_2025 = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 // 2026: cargar solo hasta el mes actual para no hacer fetches innecesarios

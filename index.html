@@ -124,15 +124,21 @@
   /* TARJETAS PROYECTO */
   @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   .proyectos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:16px;margin-bottom:18px;}
-  .proy-card{background:var(--card-bg);border-radius:var(--r);padding:20px;box-shadow:var(--sombra);border-left:5px solid var(--borde);transition:transform .22s,box-shadow .22s;cursor:pointer;animation:fadeUp .35s ease both;}
+  .proy-card{background:var(--card-bg);border-radius:var(--r);padding:16px;box-shadow:var(--sombra);border-left:5px solid var(--borde);transition:transform .22s,box-shadow .22s;cursor:pointer;animation:fadeUp .35s ease both;}
   .proy-card:hover{transform:translateY(-3px);box-shadow:var(--sombra-hover);}
-  .proy-nombre{font-size:16px;font-weight:700;color:var(--azul);margin-bottom:5px;line-height:1.3;}
-  .proy-campana{font-size:12px;color:var(--suave);margin-bottom:12px;}
-  .proy-prog-wrap{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
-  .proy-prog-bar{flex:1;height:9px;background:var(--gris);border-radius:5px;overflow:hidden;}
+  .proy-card-body{display:flex;gap:14px;align-items:flex-start;}
+  .proy-logo-col{width:78px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:12px;padding:10px 8px;min-height:72px;gap:5px;}
+  .proy-logo-col img{max-width:60px;max-height:50px;object-fit:contain;display:block;}
+  .proy-logo-col .cli-ini{font-size:22px;font-weight:800;letter-spacing:-1px;}
+  .proy-logo-col .cli-name{font-size:9px;font-weight:600;letter-spacing:.3px;text-align:center;opacity:.7;line-height:1.2;}
+  .proy-content{flex:1;min-width:0;}
+  .proy-nombre{font-size:17px;font-weight:700;color:var(--azul);margin-bottom:3px;line-height:1.25;}
+  .proy-campana{font-size:11px;color:var(--suave);margin-bottom:10px;}
+  .proy-prog-wrap{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .proy-prog-bar{flex:1;height:8px;background:var(--gris);border-radius:5px;overflow:hidden;}
   .proy-prog-fill{height:100%;border-radius:5px;transition:width .7s ease;}
-  .proy-prog-pct{font-size:13px;font-weight:700;color:var(--texto);width:36px;text-align:right;}
-  .proy-secciones{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;}
+  .proy-prog-pct{font-size:14px;font-weight:800;color:var(--texto);width:38px;text-align:right;}
+  .proy-secciones{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;}
   .secc-tag{padding:3px 9px;border-radius:10px;font-size:11px;font-weight:500;background:var(--gris);color:var(--suave);}
   .secc-ok{background:var(--gris);color:var(--texto);}
   .secc-pend{background:var(--gris);color:var(--suave);}
@@ -550,6 +556,16 @@ function normalizarProyecto(nombre){
   if(!nombre) return nombre;
   var t = nombre.trim();
   return NOMBRE_CANONICO[t] || t;
+}
+// Muestra el nombre del proyecto sin el prefijo del cliente cuando ya hay logo
+function displayNombre(nombre){
+  var cliente = getClienteDeProyecto(nombre);
+  if(!cliente) return nombre;
+  var cfg = CLIENTES_CONFIG[cliente] || {};
+  if(!cfg.logo) return nombre;
+  var re = new RegExp('^' + cliente.replace(/[-\/\\^$*+?.()|[\]{}]/g,'\\$&') + '\\s+', 'i');
+  var corto = nombre.replace(re, '').trim();
+  return corto || nombre;
 }
 
 var PROYECTO_CLIENTE = {
@@ -1048,20 +1064,39 @@ function render(){
     }).join('');
     var estadoPill=p.done?pill('✓ Completo','p-ok'):p.comp>0?pill(p.comp+'/'+p.tot+' secc.','p-parcial'):pill('Sin iniciar','p-pend');
     var safeNombre=p.proyecto.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    var logoHTML = getClienteHTML(p.proyecto);
-    return '<div class="proy-card '+clase+'" style="border-left-color:'+getPrColor(p.proyecto)+';" onclick="verDetalle(\''+safeNombre+'\')">'+
-      (logoHTML?'<div class="proy-cliente">'+logoHTML+'</div>':'')+
-      '<div class="proy-nombre">'+p.proyecto+'</div>'+
-      '<div class="proy-campana">'+p.campana+' · '+p.mes+' '+p.source+'</div>'+
-      '<div class="proy-prog-wrap">'+
-        '<div class="proy-prog-bar"><div class="proy-prog-fill" style="width:'+p.pct+'%;background:'+color+';"></div></div>'+
-        '<div class="proy-prog-pct">'+p.pct+'%</div>'+
+    var cliente = getClienteDeProyecto(p.proyecto);
+    var cfg = cliente ? (CLIENTES_CONFIG[cliente]||{}) : {};
+    var clienteColor = cfg.color || getPrColor(p.proyecto);
+    var bgLight = clienteColor.replace(/^#/,'');
+    // Build logo column
+    var logoCol = '';
+    if(cfg.logo){
+      logoCol = '<div class="proy-logo-col" style="background:'+clienteColor+'18;">'
+        +'<img src="'+cfg.logo+'" alt="'+cliente+'" onerror="this.style.display=\'none\'">'
+        +'</div>';
+    } else if(cliente){
+      logoCol = '<div class="proy-logo-col" style="background:'+clienteColor+'18;color:'+clienteColor+';">'
+        +'<span class="cli-ini">'+ini(cliente)+'</span>'
+        +'<span class="cli-name">'+cliente+'</span>'
+        +'</div>';
+    }
+    return '<div class="proy-card '+clase+'" style="border-left-color:'+clienteColor+';" onclick="verDetalle(\''+safeNombre+'\')">'+
+      '<div class="proy-card-body">'+
+      logoCol+
+      '<div class="proy-content">'+
+        '<div class="proy-nombre">'+displayNombre(p.proyecto)+'</div>'+
+        '<div class="proy-campana">'+p.campana+' · '+p.mes+' '+p.source+'</div>'+
+        '<div class="proy-prog-wrap">'+
+          '<div class="proy-prog-bar"><div class="proy-prog-fill" style="width:'+p.pct+'%;background:'+color+';"></div></div>'+
+          '<div class="proy-prog-pct">'+p.pct+'%</div>'+
+        '</div>'+
+        '<div class="proy-secciones">'+seccTags+'</div>'+
+        '<div class="proy-footer"><div class="proy-avatares">'+avatares+'</div>'+estadoPill+
+        '<button style="background:none;border:none;cursor:pointer;font-size:10px;color:var(--suave);padding:2px 6px;border-radius:6px;transition:color .2s;" '+
+          'onmouseover="this.style.color=\'var(--azul-c)\'" onmouseout="this.style.color=\'var(--suave)\'" '+
+          'onclick="event.stopPropagation();verHistorial(\''+safeNombre+'\')" title="Ver historial">📋 Historial</button>'+
+        '</div>'+
       '</div>'+
-      '<div class="proy-secciones">'+seccTags+'</div>'+
-      '<div class="proy-footer"><div class="proy-avatares">'+avatares+'</div>'+estadoPill+
-      '<button style="background:none;border:none;cursor:pointer;font-size:10px;color:var(--suave);padding:2px 6px;border-radius:6px;transition:color .2s;" '+
-        'onmouseover="this.style.color=\'var(--azul-c)\'" onmouseout="this.style.color=\'var(--suave)\'" '+
-        'onclick="event.stopPropagation();verHistorial(\''+safeNombre+'\')" title="Ver historial">📋 Historial</button>'+
       '</div>'+
     '</div>';
   }).join('');

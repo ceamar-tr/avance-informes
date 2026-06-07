@@ -301,6 +301,23 @@
   .hist-secc{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:11px;border-bottom:1px solid #f5f5f5;}
   .hist-secc:last-child{border-bottom:none;}
   @media(max-width:900px){.kgrid{grid-template-columns:repeat(2,1fr)}.proyectos-grid{grid-template-columns:1fr}.equipo-grid{grid-template-columns:repeat(2,1fr)}.pend-grid{grid-template-columns:1fr}.wrap{padding:14px}}
+  /* EDICIÓN INLINE */
+  .secc-edit-field{cursor:pointer;padding:1px 5px;border-radius:4px;transition:background .15s;border-bottom:1px dashed transparent;}
+  .secc-edit-field:hover{background:var(--azul-s);border-bottom-color:var(--azul-c);}
+  .secc-edit-input{font-size:12px;padding:2px 7px;border:1.5px solid var(--azul-c);border-radius:5px;outline:none;font-family:'DM Sans',sans-serif;background:var(--card-bg);color:var(--texto);width:120px;}
+  .toggle-comp{background:none;border:none;cursor:pointer;font-size:14px;padding:0 3px;border-radius:4px;transition:transform .15s;flex-shrink:0;}
+  .toggle-comp:hover{transform:scale(1.25);}
+  .save-toast{position:fixed;bottom:24px;right:24px;background:#1a2333;color:white;padding:8px 16px;border-radius:20px;font-size:12px;font-family:'DM Sans',sans-serif;z-index:9999;display:none;box-shadow:0 4px 20px rgba(0,0,0,0.3);transition:opacity .3s;}
+  .save-toast.show{display:block;}
+  .save-toast.ok{background:#1a5c2e;}
+  .save-toast.err{background:#c62828;}
+  /* LOGOS DE CLIENTE */
+  .cliente-logo{height:22px;max-width:70px;object-fit:contain;vertical-align:middle;}
+  .cliente-badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:8px;letter-spacing:.5px;vertical-align:middle;}
+  .proy-cliente{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+  [data-theme="dark"] .secc-edit-field:hover{background:var(--azul-s);}
+  [data-theme="dark"] .secc-edit-input{background:var(--card-bg);color:var(--texto);}
+  [data-theme="dark"] .save-toast{background:#1a2333;}
 </style>
 </head>
 <body>
@@ -330,6 +347,7 @@
       <button onclick="cambiarFuente(-1)" title="Letra más pequeña" style="background:none;border:none;border-right:1px solid rgba(255,255,255,0.2);color:white;padding:4px 10px;cursor:pointer;font-size:12px;font-weight:700;font-family:'DM Sans',sans-serif;">A−</button>
       <button onclick="cambiarFuente(1)" title="Letra más grande" style="background:none;border:none;color:white;padding:4px 10px;cursor:pointer;font-size:15px;font-weight:700;font-family:'DM Sans',sans-serif;">A+</button>
     </div>
+    <button onclick="forzarRecarga()" title="Recargar datos desde Google Sheets" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:white;border-radius:20px;padding:4px 12px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;">↻</button>
     <button onclick="toggleDark()" id="dark-btn" title="Modo oscuro" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:white;border-radius:20px;padding:4px 12px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;">🌙</button>
   </div>
 </div>
@@ -465,6 +483,9 @@
   </div>
 </div>
 
+<!-- TOAST GUARDADO -->
+<div class="save-toast" id="save-toast"></div>
+
 <!-- PANEL LATERAL DETALLE -->
 <div class="side-panel-overlay" id="side-overlay" onclick="cerrarSidePanel()"></div>
 <div class="side-panel" id="side-panel">
@@ -487,6 +508,32 @@
 // ─── CONFIG ──────────────────────────────────────────────
 var S25 = '1U7iVGcQ0C1YqNeZak1rV4ld5P9XTsOjWxybkBvw5aXg';
 var S26 = '1hIBPoAE-zdTFc8v4ZMx0K9bzGTufOF_4nD8ERu4i7PM';
+
+// URL del Web App de Google Apps Script (pegar después de implementar)
+// Puede ser la misma URL para ambas planillas si usas el mismo script
+var APPS_SCRIPT_URL_2026 = 'https://script.google.com/macros/s/AKfycbzTUElhO7ULQ-OQsfs4eOHcEyUqljP1QxlDjyDT0Lg8lJ6U7g7vSsdaraeN3t1T8SqjrA/exec';
+var APPS_SCRIPT_URL_2025 = 'https://script.google.com/macros/s/AKfycbxxfAtqXHnG0lixNFYB9hdpmOv_jmw82RiCR07byTPZrILXfXfl56epte9LiAZFj96j7g/exec';
+
+// ─── LOGOS DE CLIENTES ───────────────────────────────────
+// Sube los logos a una carpeta /logos/ en el repositorio de GitHub.
+// Ejemplo: logos/teck.png, logos/bhp.png, logos/cap.png
+// Formato: 'Nombre del cliente': { logo: 'logos/archivo.png', color: '#hexcolor' }
+var CLIENTES_CONFIG = {
+  // 'TECK':  { logo: 'logos/teck.png',  color: '#1565c0' },
+  // 'BHP':   { logo: 'logos/bhp.png',   color: '#e65100' },
+  // 'CAP':   { logo: 'logos/cap.png',   color: '#2e7d32' },
+  // 'CODELCO': { logo: 'logos/codelco.png', color: '#c62828' },
+};
+
+// Asocia cada proyecto a su cliente
+// Formato: 'Nombre exacto del proyecto': 'Nombre del cliente'
+var PROYECTO_CLIENTE = {
+  // 'Cruz Grande':               'TECK',
+  // 'QB2 PS14':                  'TECK',
+  // 'Santo Domingo LB':          'BHP',
+  // 'Puerto Punta Totoralillo':  'CAP',
+  // Completar con todos los proyectos...
+};
 var HOJAS_2025 = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 // 2026: cargar solo hasta el mes actual para no hacer fetches innecesarios
 var HOJAS_2026 = (function(){
@@ -918,7 +965,9 @@ function render(){
     }).join('');
     var estadoPill=p.done?pill('✓ Completo','p-ok'):p.comp>0?pill(p.comp+'/'+p.tot+' secc.','p-parcial'):pill('Sin iniciar','p-pend');
     var safeNombre=p.proyecto.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    var logoHTML = getClienteHTML(p.proyecto);
     return '<div class="proy-card '+clase+'" style="border-left-color:'+getPrColor(p.proyecto)+';" onclick="verDetalle(\''+safeNombre+'\')">'+
+      (logoHTML?'<div class="proy-cliente">'+logoHTML+'</div>':'')+
       '<div class="proy-nombre">'+p.proyecto+'</div>'+
       '<div class="proy-campana">'+p.campana+' · '+p.mes+' '+p.source+'</div>'+
       '<div class="proy-prog-wrap">'+
@@ -1115,13 +1164,23 @@ function abrirSidePanel(nombre, mes, anio, campana){
   subHtml += '<span class="pill '+estadoCls+'">'+comp+'/'+tot+' secciones</span>';
   document.getElementById('sp-sub').innerHTML = subHtml;
 
+  var safeNombreSP = nombre.replace(/"/g,'&quot;');
   var lista = rows.map(function(s){
-    var c = gc(s.responsable);
-    return '<div class="secc-item '+(s.completado?'ok':'pend')+'" style="padding:10px 12px;">'
-      +'<span class="secc-status">'+(s.completado?'✓':'○')+'</span>'
-      +'<span class="secc-nombre" style="font-size:13px;">'+s.seccion+'</span>'
-      +'<span class="av av-sm" style="background:'+c.bg+';color:'+c.fg+';" title="'+s.responsable+'">'+ini(s.responsable)+'</span>'
-      +'<span class="secc-resp" style="font-size:12px;font-weight:600;color:var(--texto);">'+s.responsable+'</span>'
+    var c = gc(s.responsable||'');
+    var compAttr = s.completado?'true':'false';
+    var seccEsc = s.seccion.replace(/"/g,'&quot;');
+    return '<div class="secc-item '+(s.completado?'ok':'pend')+'" style="padding:10px 12px;gap:8px;"'
+      +' data-seccion="'+seccEsc+'" data-proyecto="'+safeNombreSP+'" data-source="'+anio+'" data-mes="'+mes+'">'
+      // Toggle completado
+      +'<button class="toggle-comp" data-comp="'+compAttr+'" onclick="toggleCompletadoSecc(this)" title="Marcar como '+(s.completado?'pendiente':'completado')+'" style="color:'+(s.completado?'var(--verde)':'var(--suave)')+';">'+(s.completado?'✓':'○')+'</button>'
+      // Nombre sección
+      +'<span class="secc-nombre" style="font-size:13px;flex:1;">'+s.seccion+'</span>'
+      // Responsable (editable)
+      +'<span class="av av-sm" style="background:'+c.bg+';color:'+c.fg+';" title="'+( s.responsable||'Sin asignar')+'">'+ini(s.responsable||'?')+'</span>'
+      +'<span class="secc-edit-field" data-field="responsable" data-valor="'+(s.responsable||'')+'" onclick="editarCampo(this)" title="Clic para editar responsable">'+(s.responsable||'—')+'</span>'
+      // Responsable SMA (editable)
+      +'<span style="font-size:10px;color:var(--suave);margin-left:4px;">SMA:</span>'
+      +'<span class="secc-edit-field" data-field="smaResp" data-valor="'+(s.smaResp||'')+'" onclick="editarCampo(this)" title="Clic para editar responsable SMA">'+(s.smaResp||'—')+'</span>'
       +'</div>';
   }).join('');
   document.getElementById('sp-secciones').innerHTML = lista;
@@ -1140,6 +1199,12 @@ function abrirSidePanel(nombre, mes, anio, campana){
       footer += '<button class="ruta-btn" data-ruta="'+rutaEsc2+'" onclick="copiarRutaBtn(this)" title="'+rutaEsc2+'">📂 Copiar ruta</button>';
     }
   }
+  // Ruta editable inline
+  var rutaEscF = (ruta||'').replace(/"/g,'&quot;');
+  footer += '<span style="font-size:11px;color:var(--suave);margin-left:auto;">Ruta:</span>'
+    +'<span class="secc-edit-field" data-field="ubicacion" data-valor="'+rutaEscF+'"'
+    +' data-seccion="__proyecto__" data-proyecto="'+nombre.replace(/"/g,'&quot;')+'" data-source="'+anio+'" data-mes="'+mes+'"'
+    +' onclick="editarCampoUbicacion(this,\''+nombre.replace(/'/g,"\\'")+'\')" title="Clic para editar ruta">'+(ruta||'—')+'</span>';
   footer += '<button onclick="cerrarSidePanel();irAMes(\''+mes+'\',\''+anio+'\')" '
     + 'style="padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid var(--borde);'
     + 'color:var(--suave);background:none;cursor:pointer;font-family:\'DM Sans\',sans-serif;">↗ Ir al mes</button>';
@@ -1163,6 +1228,212 @@ function copiarRuta(ruta){
 // Versión segura para llamar desde data-attribute (evita problemas con backslashes en onclick)
 function copiarRutaBtn(btn){
   copiarRuta(btn.getAttribute('data-ruta'));
+}
+
+// ─── TOAST DE GUARDADO ───────────────────────────────────
+var _toastTimer = null;
+function showToast(msg, tipo){
+  var t = document.getElementById('save-toast');
+  if(!t) return;
+  t.textContent = msg;
+  t.className = 'save-toast show ' + (tipo||'');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(function(){ t.className='save-toast'; }, 2500);
+}
+
+// ─── GUARDAR CAMPO EN GOOGLE SHEETS ─────────────────────
+function saveField(source, mes, proyecto, seccion, field, value){
+  var url = source==='2026' ? APPS_SCRIPT_URL_2026 : APPS_SCRIPT_URL_2025;
+  var ssId = source==='2026' ? S26 : S25;
+
+  if(!url || url.indexOf('PEGAR_AQUI')>=0){
+    showToast('⚠ Configura APPS_SCRIPT_URL en index.html', 'err');
+    return;
+  }
+
+  showToast('⟳ Guardando...', '');
+
+  var payload = JSON.stringify({
+    action:'update', ssId:ssId, sheetName:mes,
+    proyecto:proyecto, seccion:seccion, field:field, value:value
+  });
+
+  fetch(url, {
+    method:'POST',
+    mode:'no-cors',
+    headers:{'Content-Type':'text/plain'},
+    body:payload
+  }).then(function(){
+    showToast('✓ Guardado en Drive', 'ok');
+    // Actualizar datos en memoria
+    ALL.forEach(function(r){
+      if(r.proyecto===proyecto && r.seccion===seccion && r.mes===mes && r.source===source){
+        if(field==='responsable') r.responsable=value;
+        else if(field==='completado') r.completado=(value===true||value==='true');
+        else if(field==='smaResp') r.smaResp=value;
+        else if(field==='ubicacion') r.ubicacion=value;
+      }
+    });
+    // Invalidar caché de esta hoja para próxima carga
+    try{ localStorage.removeItem('ceamar3_'+source+'_'+mes); }catch(e){}
+    // Re-renderizar tabs que dependen de estos datos
+    render(); renderUrgentes(); renderPendientes();
+  }).catch(function(){
+    showToast('✗ Error al guardar', 'err');
+  });
+}
+
+// ─── EDICIÓN INLINE DE CAMPO ─────────────────────────────
+function editarCampo(el){
+  var row = el.closest('[data-seccion]');
+  if(!row) return;
+  var seccion  = row.getAttribute('data-seccion');
+  var proyecto = row.getAttribute('data-proyecto');
+  var source   = row.getAttribute('data-source');
+  var mes      = row.getAttribute('data-mes');
+  var field    = el.getAttribute('data-field');
+  var valorActual = el.getAttribute('data-valor') || '';
+
+  var input = document.createElement('input');
+  input.className = 'secc-edit-input';
+  input.value = valorActual;
+  el.replaceWith(input);
+  input.focus(); input.select();
+
+  function guardar(){
+    var nuevoValor = input.value.trim();
+    var span = document.createElement('span');
+    span.className = 'secc-edit-field';
+    span.setAttribute('data-field', field);
+    span.setAttribute('data-valor', nuevoValor);
+    span.setAttribute('data-seccion', seccion); // no se usa pero ayuda
+    span.setAttribute('onclick', 'editarCampo(this)');
+    span.title = 'Clic para editar';
+    span.textContent = nuevoValor || '—';
+    input.replaceWith(span);
+    if(nuevoValor !== valorActual){
+      saveField(source, mes, proyecto, seccion, field, nuevoValor);
+    }
+  }
+
+  input.addEventListener('blur', guardar);
+  input.addEventListener('keydown', function(e){
+    if(e.key==='Enter'){ e.preventDefault(); guardar(); }
+    if(e.key==='Escape'){
+      var span = document.createElement('span');
+      span.className='secc-edit-field';
+      span.setAttribute('data-field',field);
+      span.setAttribute('data-valor',valorActual);
+      span.setAttribute('onclick','editarCampo(this)');
+      span.title='Clic para editar';
+      span.textContent=valorActual||'—';
+      input.replaceWith(span);
+    }
+  });
+}
+
+// ─── TOGGLE COMPLETADO ───────────────────────────────────
+function toggleCompletadoSecc(btn){
+  var row = btn.closest('[data-seccion]');
+  if(!row) return;
+  var seccion  = row.getAttribute('data-seccion');
+  var proyecto = row.getAttribute('data-proyecto');
+  var source   = row.getAttribute('data-source');
+  var mes      = row.getAttribute('data-mes');
+  var actual   = btn.getAttribute('data-comp')==='true';
+  var nuevo    = !actual;
+  btn.setAttribute('data-comp', String(nuevo));
+  btn.textContent = nuevo ? '✓' : '○';
+  btn.style.color = nuevo ? 'var(--verde)' : 'var(--suave)';
+  row.style.background = nuevo ? 'var(--verde-s)' : '';
+  saveField(source, mes, proyecto, seccion, 'completado', nuevo);
+}
+
+// ─── LOGOS DE CLIENTE ────────────────────────────────────
+function getClienteHTML(proyecto){
+  var cliente = PROYECTO_CLIENTE[proyecto] || PROYECTO_CLIENTE[(proyecto||'').trim()];
+  if(!cliente) return '';
+  var cfg = CLIENTES_CONFIG[cliente];
+  if(!cfg){
+    return '<span class="cliente-badge" style="background:var(--gris);color:var(--suave);">'+cliente+'</span>';
+  }
+  var color = cfg.color || 'var(--azul-c)';
+  if(cfg.logo){
+    return '<img src="'+cfg.logo+'" alt="'+cliente+'" class="cliente-logo" '
+      +'onerror="this.outerHTML=\'<span class=\\\"cliente-badge\\\" style=\\\"background:var(--gris);color:'+color+';\\\">'+cliente+'</span>\'">';
+  }
+  return '<span class="cliente-badge" style="background:var(--azul-s);color:'+color+';">'+cliente+'</span>';
+}
+
+// ─── EDITAR UBICACIÓN (aplica a todas las secciones del proyecto) ───────
+function editarCampoUbicacion(el, proyecto){
+  var source = el.getAttribute('data-source');
+  var mes    = el.getAttribute('data-mes');
+  var valorActual = el.getAttribute('data-valor') || '';
+  var input = document.createElement('input');
+  input.className = 'secc-edit-input';
+  input.style.width = '220px';
+  input.value = valorActual;
+  el.replaceWith(input);
+  input.focus(); input.select();
+
+  function guardar(){
+    var nuevoValor = input.value.trim();
+    var span = document.createElement('span');
+    span.className = 'secc-edit-field';
+    span.setAttribute('data-field','ubicacion');
+    span.setAttribute('data-valor', nuevoValor);
+    span.setAttribute('data-source', source);
+    span.setAttribute('data-mes', mes);
+    span.setAttribute('data-seccion','__proyecto__');
+    span.setAttribute('data-proyecto', proyecto);
+    span.setAttribute('onclick','editarCampoUbicacion(this,\''+proyecto.replace(/'/g,"\\'")+'\')');
+    span.title = 'Clic para editar ruta';
+    span.textContent = nuevoValor || '—';
+    input.replaceWith(span);
+    if(nuevoValor !== valorActual){
+      // Guardar en la primera sección del proyecto (la ruta es por proyecto)
+      var primeraSecc = ALL.find(function(r){
+        return r.proyecto===proyecto && r.mes===mes && r.source===source;
+      });
+      if(primeraSecc){
+        saveField(source, mes, proyecto, primeraSecc.seccion, 'ubicacion', nuevoValor);
+        // Actualizar todas las secciones en memoria
+        ALL.forEach(function(r){
+          if(r.proyecto===proyecto && r.mes===mes && r.source===source) r.ubicacion=nuevoValor;
+        });
+      }
+    }
+  }
+  input.addEventListener('blur', guardar);
+  input.addEventListener('keydown', function(e){
+    if(e.key==='Enter'){ e.preventDefault(); guardar(); }
+    if(e.key==='Escape'){
+      var span=document.createElement('span');
+      span.className='secc-edit-field';
+      span.setAttribute('data-field','ubicacion');
+      span.setAttribute('data-valor',valorActual);
+      span.setAttribute('onclick','editarCampoUbicacion(this,\''+proyecto.replace(/'/g,"\\'")+'\')');
+      span.title='Clic para editar ruta';
+      span.textContent=valorActual||'—';
+      input.replaceWith(span);
+    }
+  });
+}
+
+// ─── FORZAR RECARGA ──────────────────────────────────────
+function forzarRecarga(){
+  // Borra todo el caché local y recarga la página
+  try{
+    var keys=[];
+    for(var i=0;i<localStorage.length;i++){
+      var k=localStorage.key(i);
+      if(k&&k.indexOf('ceamar')===0) keys.push(k);
+    }
+    keys.forEach(function(k){ localStorage.removeItem(k); });
+  }catch(e){}
+  showToast('↻ Recargando datos...', '');
+  setTimeout(function(){ location.reload(); }, 400);
 }
 
 // ─── EQUIPO ───────────────────────────────────────────────

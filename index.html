@@ -576,7 +576,7 @@ var ALL = [], camp = 'Todas', mesSel = '', anioSel = '2026', respFiltro = '';
 
 // ─── FETCH con caché ──────────────────────────────────────
 function fetchSheet(id, sheetName, source){
-  var cacheKey = 'ceamar_' + source + '_' + sheetName;
+  var cacheKey = 'ceamar3_' + source + '_' + sheetName;
   var cached = getCached(cacheKey);
   if(cached){ return Promise.resolve(cached); }
 
@@ -993,10 +993,10 @@ function renderUrgentes(){
       +'</div>';
   }).join('');
   panel.innerHTML = '<div class="urgentes-wrap">'
-    +'<div class="urgentes-titulo">🚨 Secciones sin responsable asignado — '+mesSel+' '+anioSel
+    +'<div class="urgentes-titulo">📭 Pendiente de recepción — '+mesSel+' '+anioSel
     +'<span style="background:rgba(255,255,255,0.25);border-radius:20px;padding:2px 10px;font-size:11px;">'+totalSecc+' sección'+(totalSecc!==1?'es':'')+' · '+proyNames.length+' proyecto'+(proyNames.length!==1?'s':'')+'</span>'
     +'</div>'
-    +'<div class="urgentes-sub">Estas secciones no tienen responsable registrado en la planilla. Asignarlas para completar el seguimiento.</div>'
+    +'<div class="urgentes-sub">Las siguientes secciones aún no tienen responsable registrado. Actualizar la planilla una vez que la información sea recibida.</div>'
     +'<div class="urgentes-grid">'+rows+'</div>'
     +'</div>';
 }

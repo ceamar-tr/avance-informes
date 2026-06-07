@@ -247,6 +247,16 @@
   .resp-chip:hover{border-color:var(--azul-c);color:var(--azul-c);}
   .resp-chip.on{background:var(--azul-c);color:white;border-color:var(--azul-c);}
   .resp-chip .av-xs{width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:6px;font-weight:700;}
+  /* URGENTES */
+  .urgentes-wrap{background:linear-gradient(135deg,#7f0000,#c62828);border-radius:var(--r);padding:16px 20px;margin-bottom:18px;color:white;box-shadow:0 4px 20px rgba(198,40,40,0.35);}
+  .urgentes-titulo{font-size:14px;font-weight:700;margin-bottom:2px;display:flex;align-items:center;gap:8px;}
+  .urgentes-sub{font-size:11px;opacity:.8;margin-bottom:12px;}
+  .urgentes-grid{display:flex;flex-direction:column;gap:6px;}
+  .urgente-row{background:rgba(255,255,255,0.12);border-radius:8px;padding:8px 12px;display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;}
+  .urgente-proy{font-size:12px;font-weight:700;color:white;min-width:160px;}
+  .urgente-seccs{display:flex;flex-wrap:wrap;gap:4px;}
+  .urgente-secc{background:rgba(255,255,255,0.2);border-radius:6px;padding:2px 8px;font-size:11px;color:white;border:1px solid rgba(255,255,255,0.3);}
+  [data-theme="dark"] .urgentes-wrap{background:linear-gradient(135deg,#4a0000,#7f0000);}
   /* BÚSQUEDA HISTÓRICA */
   .busq-hist{background:var(--card-bg);border-radius:var(--r);padding:18px 20px;box-shadow:var(--sombra);margin-bottom:18px;display:none;border-left:4px solid var(--azul-c);}
   .busq-hist.visible{display:block;}
@@ -372,6 +382,7 @@
         <button class="fchip" onclick="fCamp('Otoño',this)">Otoño</button>
       </div>
     </div>
+    <div id="urgentes-panel"></div>
     <div class="kgrid" id="kgrid"><div class="loading"><div class="spin-lg"></div></div></div>
     <div class="detalle-panel" id="detalle-panel">
       <div class="detalle-header">
@@ -577,19 +588,50 @@ function fetchSheet(id, sheetName, source){
       if(!m) return [];
       var json = JSON.parse(m[1]);
       if(!json.table||!json.table.rows||!json.table.rows.length) return [];
+
+      // Detectar columnas por nombre de encabezado (robusto ante cambios de orden)
+      var cols = json.table.cols || [];
+      function nrm(s){ return s?String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim():''; }
+      function findCol(keywords, exclude, fallback){
+        exclude = exclude||[];
+        for(var i=0;i<cols.length;i++){
+          var lbl=nrm(cols[i].label);
+          if(!lbl) continue;
+          var hit=keywords.some(function(k){return lbl.indexOf(k)>=0;});
+          var bad=exclude.some(function(k){return lbl.indexOf(k)>=0;});
+          if(hit&&!bad) return i;
+        }
+        return fallback;
+      }
+      var iP  = findCol(['proyecto'],              [],      0);
+      var iC  = findCol(['campana'],               ['norm'],1);
+      var iS  = findCol(['secc'],                  [],      2);
+      var iR  = findCol(['responsable','resp'],    ['sma'], 3);
+      var iDo = findCol(['complet','entregad','hecho','listo'],[], 4);
+      var iU  = findCol(['ubic','ruta','carpeta','path'],   [], 5);
+      var iSMA= findCol(['sma'],                   [],      6);
+      var iCN = findCol(['norm'],                  [],      7);
+      var iA  = findCol(['ano','year','anio'],      [],      8);
+
       var rows=[], pA='', cA='', cnA='', aA='';
       json.table.rows.forEach(function(row){
         if(!row.c) return;
-        function cv(i){var c=row.c[i];if(!c)return'';if(typeof c.v==='boolean')return c.v;return c.v==null?'':c.v;}
-        var proyecto   = String(cv(0)||'').trim();
-        var campana    = String(cv(1)||'').trim();
-        var seccion    = String(cv(2)||'').trim();
-        var responsable= String(cv(3)||'').trim();
-        var completado = (cv(4)===true||cv(4)==='TRUE');
-        var ubicacion  = String(cv(5)||'').trim();
-        var smaResp    = String(cv(7)||'').trim();
-        var campaNorm  = String(cv(8)||'').trim();
-        var anio       = cv(9)?String(cv(9)).trim():'';
+        function cv(i){
+          if(i<0||i>=row.c.length)return'';
+          var c=row.c[i];
+          if(!c)return'';
+          if(typeof c.v==='boolean')return c.v;
+          return c.v==null?'':c.v;
+        }
+        var proyecto    = String(cv(iP) ||'').trim();
+        var campana     = String(cv(iC) ||'').trim();
+        var seccion     = String(cv(iS) ||'').trim();
+        var responsable = String(cv(iR) ||'').trim();
+        var completado  = (cv(iDo)===true||String(cv(iDo)).toUpperCase()==='TRUE');
+        var ubicacion   = String(cv(iU) ||'').trim();
+        var smaResp     = String(cv(iSMA)||'').trim();
+        var campaNorm   = String(cv(iCN) ||'').trim();
+        var anio        = cv(iA)?String(cv(iA)).trim():'';
         if(proyecto)  pA=proyecto;
         if(campana)   cA=campana;
         if(campaNorm) cnA=campaNorm;
@@ -840,6 +882,7 @@ function tendencia(valActual, total, mesComp, anioComp){
 
 // ─── RENDER PROYECTOS ────────────────────────────────────
 function render(){
+  renderUrgentes();
   var fd=getF(), proyectos=getProy(fd);
   var tP=proyectos.length,cP=proyectos.filter(function(p){return p.done;}).length,peP=tP-cP;
   var pct=tP>0?Math.round(cP/tP*100):0;
@@ -918,8 +961,9 @@ function verDetalle(nombre){
   var rutaHtml='';
   if(ruta){
     var esURL=/^https?:\/\//i.test(ruta);
-    if(esURL) rutaHtml='<a href="'+ruta+'" target="_blank" class="ruta-btn" style="margin-top:12px;display:inline-flex;">📂 Abrir carpeta</a>';
-    else rutaHtml='<button class="ruta-btn" onclick="copiarRuta(\''+ruta.replace(/'/g,"\\'")+'\')">📂 Copiar ruta</button>';
+    var rutaEsc = ruta.replace(/"/g,'&quot;');
+    if(esURL) rutaHtml='<a href="'+rutaEsc+'" target="_blank" class="ruta-btn" style="margin-top:12px;display:inline-flex;">📂 Abrir carpeta</a>';
+    else rutaHtml='<button class="ruta-btn" data-ruta="'+rutaEsc+'" onclick="copiarRutaBtn(this)" title="'+rutaEsc+'">📂 Copiar ruta</button>';
   }
   document.getElementById('detalle-secciones').insertAdjacentHTML('afterend','<div id="detalle-ruta" style="margin-top:10px;">'+rutaHtml+'</div>');
 
@@ -927,6 +971,36 @@ function verDetalle(nombre){
   panel.className='detalle-panel visible';
   panel.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
+function renderUrgentes(){
+  var panel = document.getElementById('urgentes-panel');
+  if(!panel) return;
+  // Secciones sin responsable asignado en el mes/año actual
+  var fd = ALL.filter(function(r){ return r.mes===mesSel && r.source===anioSel && (!r.responsable||!r.responsable.trim()); });
+  if(!fd.length){ panel.innerHTML=''; return; }
+  // Agrupar por proyecto
+  var map = {};
+  fd.forEach(function(r){
+    if(!map[r.proyecto]) map[r.proyecto]=[];
+    map[r.proyecto].push(r.seccion);
+  });
+  var proyNames = Object.keys(map).sort();
+  var totalSecc = fd.length;
+  var rows = proyNames.map(function(p){
+    var seccs = map[p].map(function(s){ return '<span class="urgente-secc">'+s+'</span>'; }).join('');
+    return '<div class="urgente-row">'
+      +'<span class="urgente-proy">⚠ '+p+'</span>'
+      +'<span class="urgentes-seccs" style="display:flex;flex-wrap:wrap;gap:4px;">'+seccs+'</span>'
+      +'</div>';
+  }).join('');
+  panel.innerHTML = '<div class="urgentes-wrap">'
+    +'<div class="urgentes-titulo">🚨 Secciones sin responsable asignado — '+mesSel+' '+anioSel
+    +'<span style="background:rgba(255,255,255,0.25);border-radius:20px;padding:2px 10px;font-size:11px;">'+totalSecc+' sección'+(totalSecc!==1?'es':'')+' · '+proyNames.length+' proyecto'+(proyNames.length!==1?'s':'')+'</span>'
+    +'</div>'
+    +'<div class="urgentes-sub">Estas secciones no tienen responsable registrado en la planilla. Asignarlas para completar el seguimiento.</div>'
+    +'<div class="urgentes-grid">'+rows+'</div>'
+    +'</div>';
+}
+
 function cerrarDetalle(){
   document.getElementById('detalle-panel').className='detalle-panel';
   var dr=document.getElementById('detalle-ruta');
@@ -1060,10 +1134,10 @@ function abrirSidePanel(nombre, mes, anio, campana){
     // Detectar si es URL o ruta local
     var esURL = /^https?:\/\//i.test(ruta);
     if(esURL){
-      footer += '<a href="'+ruta+'" target="_blank" class="ruta-btn">📂 Abrir carpeta</a>';
+      footer += '<a href="'+ruta.replace(/"/g,'&quot;')+'" target="_blank" class="ruta-btn">📂 Abrir carpeta</a>';
     } else {
-      // Ruta local: mostrar como texto copiable
-      footer += '<button class="ruta-btn" onclick="copiarRuta(\''+ruta.replace(/'/g,"\\'")+'\')" title="'+ruta+'">📂 Copiar ruta</button>';
+      var rutaEsc2 = ruta.replace(/"/g,'&quot;');
+      footer += '<button class="ruta-btn" data-ruta="'+rutaEsc2+'" onclick="copiarRutaBtn(this)" title="'+rutaEsc2+'">📂 Copiar ruta</button>';
     }
   }
   footer += '<button onclick="cerrarSidePanel();irAMes(\''+mes+'\',\''+anio+'\')" '
@@ -1081,10 +1155,14 @@ function cerrarSidePanel(){
 function copiarRuta(ruta){
   try{
     navigator.clipboard.writeText(ruta).then(function(){
-      var btn = document.querySelector('#sp-footer .ruta-btn');
+      var btn = document.querySelector('#sp-footer .ruta-btn') || document.querySelector('#detalle-ruta .ruta-btn');
       if(btn){ var orig=btn.textContent; btn.textContent='✓ Copiada'; setTimeout(function(){btn.textContent=orig;},2000); }
     });
   }catch(e){ prompt('Copia esta ruta:', ruta); }
+}
+// Versión segura para llamar desde data-attribute (evita problemas con backslashes en onclick)
+function copiarRutaBtn(btn){
+  copiarRuta(btn.getAttribute('data-ruta'));
 }
 
 // ─── EQUIPO ───────────────────────────────────────────────

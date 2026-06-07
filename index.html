@@ -533,14 +533,18 @@ var CLIENTES_CONFIG = {
 // Mapeo proyecto → cliente
 // Normaliza nombres inconsistentes de la planilla al nombre canónico
 var NOMBRE_CANONICO = {
-  'TECK CDA':       'Teck CDA',
-  'TECK CDA EXTRA': 'Teck CDA Extra',
-  'Extra':          'Teck CDA Extra',
-  'PS-13 QB2':      'Teck QB2 PS13',
-  'QB2 PS12':       'Teck QB2 PS12',
-  'QB2 PS14':       'Teck QB2 PS14',
-  'Teck QB2 PS12':  'Teck QB2 PS12',
-  'Teck QB2 PS14':  'Teck QB2 PS14',
+  'TECK CDA':         'Teck CDA',
+  'TECK CDA EXTRA':   'Teck CDA Extra',
+  'TECK CDA Extra':   'Teck CDA Extra',
+  'Extra':            'Teck CDA Extra',
+  'PS-13 QB2':        'Teck QB2 PS13',
+  'QB2 PS12':         'Teck QB2 PS12',
+  'QB2 PS14':         'Teck QB2 PS14',
+  'Teck QB2 PS12':    'Teck QB2 PS12',
+  'Teck QB2 PS14':    'Teck QB2 PS14',
+  'TECK QB2 PS12':    'Teck QB2 PS12',
+  'TECK QB2 PS14':    'Teck QB2 PS14',
+  'TECK QB2 PS13':    'Teck QB2 PS13',
 };
 function normalizarProyecto(nombre){
   if(!nombre) return nombre;
@@ -553,6 +557,7 @@ var PROYECTO_CLIENTE = {
   'Candelaria NUEVO PVA':     'Lundin Mining',
   'Cenizas':                  'Grupo Minero Las Cenizas',
   'Centinela':                'Antofagasta Minerals',
+  'Michilla':                 'Antofagasta Minerals',
   'Chapaco':                  'CMP',
   'Cruz Grande':              'CMP',
   'Guacolda II':              'CMP',

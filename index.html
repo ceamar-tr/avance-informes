@@ -62,8 +62,8 @@
   body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--texto);min-height:100vh;font-size:14px;transition:background .3s,color .3s;}
   .header{background:linear-gradient(135deg,var(--verde) 0%,var(--azul) 100%);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(0,0,0,0.2);}
   .header-left{display:flex;align-items:center;gap:14px;}
-  .logo-wrap{background:white;border-radius:10px;padding:5px 10px;display:flex;align-items:center;flex-shrink:0;}
-  .logo-wrap img{height:40px;width:auto;display:block;}
+  .logo-wrap{background:white;border-radius:12px;padding:6px 14px;display:flex;align-items:center;flex-shrink:0;}
+  .logo-wrap img{height:52px;width:auto;display:block;}
   .htitle{color:white;font-size:16px;font-weight:600;}
   .hsub{color:rgba(255,255,255,0.6);font-size:11px;margin-top:2px;}
   .hright{display:flex;gap:8px;align-items:center;}
@@ -324,7 +324,7 @@
 <div class="header">
   <div class="header-left">
     <div class="logo-wrap">
-      <img src="logos/CEAMAR.jpg" alt="CEAMAR" style="height:40px;width:auto;display:block;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+      <img src="logos/CEAMAR.jpg" alt="CEAMAR" style="height:52px;width:auto;display:block;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
       <svg width="110" height="44" viewBox="0 0 110 44" xmlns="http://www.w3.org/2000/svg" style="display:none;">
         <text x="4" y="18" font-family="Arial Black,Arial,sans-serif" font-size="18" font-weight="900" fill="#1a7a2e" letter-spacing="1">CEA</text>
         <text x="47" y="18" font-family="Arial Black,Arial,sans-serif" font-size="18" font-weight="900" fill="#1565c0" letter-spacing="1">MAR</text>
@@ -381,7 +381,7 @@
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;width:100%;">
         <div class="search-wrap">
           <span class="search-icon">🔍</span>
-          <input class="search-input" id="search-input" type="text" placeholder="Buscar proyecto..." oninput="render();renderBusqHist()">
+          <input class="search-input" id="search-input" type="text" placeholder="Buscar por proyecto o cliente..." oninput="render();renderBusqHist()">
         </div>
         <select class="proyecto-select" id="proyecto-select" onchange="seleccionarProyecto(this.value)">
           <option value="">Todos los proyectos</option>
@@ -855,17 +855,56 @@ document.addEventListener('click',function(e){
 });
 
 function buildProyectoSelect(){
+  // Recopilar proyectos únicos
   var proyectos=[];
-  ALL.forEach(function(r){if(r.proyecto&&proyectos.indexOf(r.proyecto)<0)proyectos.push(r.proyecto);});
+  ALL.forEach(function(r){ if(r.proyecto&&proyectos.indexOf(r.proyecto)<0) proyectos.push(r.proyecto); });
   proyectos.sort();
-  var sel=document.getElementById('proyecto-select');
-  sel.innerHTML='<option value="">Todos los proyectos</option>';
-  proyectos.forEach(function(p){sel.innerHTML+='<option value="'+p+'">'+p+'</option>';});
+
+  // Agrupar por cliente
+  var sinCliente = [];
+  var porCliente = {}; // { 'Teck': ['Cruz Grande', 'QB2 PS14', ...], ... }
+  proyectos.forEach(function(p){
+    var cliente = PROYECTO_CLIENTE[p] || PROYECTO_CLIENTE[(p||'').trim()];
+    if(!cliente){ sinCliente.push(p); return; }
+    if(!porCliente[cliente]) porCliente[cliente]=[];
+    porCliente[cliente].push(p);
+  });
+
+  var sel = document.getElementById('proyecto-select');
+  sel.innerHTML = '<option value="">Todos los proyectos</option>';
+
+  // Clientes ordenados alfabéticamente
+  var clientes = Object.keys(porCliente).sort();
+  clientes.forEach(function(cliente){
+    var grp = document.createElement('optgroup');
+    grp.label = '── ' + cliente;
+    porCliente[cliente].forEach(function(p){
+      var opt = document.createElement('option');
+      opt.value = '__cliente__' + cliente; // valor especial para filtrar por cliente
+      opt.value = p;
+      opt.textContent = p;
+      grp.appendChild(opt);
+    });
+    sel.appendChild(grp);
+  });
+
+  // Sin cliente al final
+  if(sinCliente.length){
+    var grpSin = document.createElement('optgroup');
+    grpSin.label = '── Sin cliente asignado';
+    sinCliente.forEach(function(p){
+      var opt = document.createElement('option');
+      opt.value = p;
+      opt.textContent = p;
+      grpSin.appendChild(opt);
+    });
+    sel.appendChild(grpSin);
+  }
 }
 
 function seleccionarProyecto(val){
-  document.getElementById('search-input').value=val;
-  render();
+  document.getElementById('search-input').value = val;
+  render(); renderBusqHist();
 }
 function selMes(m,a,el){
   mesSel=m; anioSel=a;
@@ -888,12 +927,16 @@ function fCamp(v,el){
   el.classList.add('on');
   render();
 }
+function getClienteDeProyecto(nombreProy){
+  return PROYECTO_CLIENTE[nombreProy] || PROYECTO_CLIENTE[(nombreProy||'').trim()] || '';
+}
 function getF(){
   var q=(document.getElementById('search-input')||{value:''}).value.toLowerCase().trim();
   return ALL.filter(function(r){
+    var clienteMatch = q!=='' && getClienteDeProyecto(r.proyecto).toLowerCase().indexOf(q)>=0;
     return r.mes===mesSel && r.source===anioSel &&
            (camp==='Todas'||r.campanaNorm===camp) &&
-           (q===''||r.proyecto.toLowerCase().indexOf(q)>=0) &&
+           (q===''||r.proyecto.toLowerCase().indexOf(q)>=0||clienteMatch) &&
            (respFiltro===''||normStr(r.responsable).toLowerCase()===normStr(respFiltro).toLowerCase());
   });
 }
@@ -1084,33 +1127,55 @@ function renderBusqHist(){
   var q = (document.getElementById('search-input')||{value:''}).value.toLowerCase().trim();
   if(q.length < 2){ panel.className='busq-hist'; return; }
 
-  // Todos los registros que coincidan con la búsqueda (todos los años/meses)
-  var rows = ALL.filter(function(r){ return r.proyecto && r.proyecto.toLowerCase().indexOf(q) >= 0; });
+  // Coincidir con nombre de proyecto O nombre de cliente
+  var rows = ALL.filter(function(r){
+    if(!r.proyecto) return false;
+    var matchProy = r.proyecto.toLowerCase().indexOf(q) >= 0;
+    var matchCliente = getClienteDeProyecto(r.proyecto).toLowerCase().indexOf(q) >= 0;
+    return matchProy || matchCliente;
+  });
   if(!rows.length){ panel.className='busq-hist'; return; }
 
-  // Agrupar por proyecto → año+mes → secciones
-  var proyMap = {};
+  // Agrupar por cliente → proyecto → año+mes → secciones
+  var clienteMap = {};
   rows.forEach(function(r){
+    var cliente = getClienteDeProyecto(r.proyecto) || 'Sin cliente';
+    if(!clienteMap[cliente]) clienteMap[cliente] = {};
     var k = r.proyecto;
-    if(!proyMap[k]) proyMap[k] = {};
+    if(!clienteMap[cliente][k]) clienteMap[cliente][k] = {};
     var mk = r.source + '|' + r.mes + '|' + (r.campanaNorm||r.campana||'');
-    if(!proyMap[k][mk]) proyMap[k][mk] = {anio:r.source, mes:r.mes, campana:r.campanaNorm||r.campana||'', secciones:[]};
-    proyMap[k][mk].secciones.push(r);
+    if(!clienteMap[cliente][k][mk]) clienteMap[cliente][k][mk] = {anio:r.source, mes:r.mes, campana:r.campanaNorm||r.campana||'', secciones:[]};
+    clienteMap[cliente][k][mk].secciones.push(r);
   });
 
-  var proyNombres = Object.keys(proyMap).sort();
-  var totalMeses = 0;
-  proyNombres.forEach(function(p){ totalMeses += Object.keys(proyMap[p]).length; });
+  var clienteNombres = Object.keys(clienteMap).sort();
+  var totalProys = 0;
+  clienteNombres.forEach(function(c){ totalProys += Object.keys(clienteMap[c]).length; });
 
   document.getElementById('busq-hist-title').textContent =
-    'Historial: "'+q+'" — '+proyNombres.length+' proyecto'+(proyNombres.length!==1?'s':'')+' encontrado'+(proyNombres.length!==1?'s':'');
+    'Búsqueda: "'+q+'" — '+totalProys+' proyecto'+(totalProys!==1?'s':'')+' · '+clienteNombres.length+' cliente'+(clienteNombres.length!==1?'s':'');
   document.getElementById('busq-hist-sub').textContent =
-    totalMeses+' aparición'+(totalMeses!==1?'es':'')+' en total a través de todos los meses y años';
+    'Resultados de todos los meses y años';
 
   var html = '';
-  proyNombres.forEach(function(nombre){
+  clienteNombres.forEach(function(cliente){
+    var cfg = CLIENTES_CONFIG[cliente] || {};
+    var clienteColor = cfg.color || 'var(--suave)';
+    // Encabezado de cliente
+    html += '<div style="margin-bottom:16px;">';
+    html += '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--gris);border-radius:10px;margin-bottom:10px;">';
+    if(cfg.logo){
+      html += '<img src="'+cfg.logo+'" alt="'+cliente+'" style="height:22px;max-width:70px;object-fit:contain;" onerror="this.style.display=\'none\'">';
+    }
+    html += '<span style="font-size:13px;font-weight:700;color:'+clienteColor+';">'+cliente+'</span>';
+    html += '<span style="font-size:11px;color:var(--suave);">'+Object.keys(clienteMap[cliente]).length+' proyecto'+(Object.keys(clienteMap[cliente]).length!==1?'s':'')+'</span>';
+    html += '</div>';
+
+    var proyNombres = Object.keys(clienteMap[cliente]).sort();
+    proyNombres.forEach(function(nombre){
+    var proyMap = clienteMap[cliente];
     var color = getPrColor(nombre);
-    html += '<div class="busq-proy-block">';
+    html += '<div class="busq-proy-block" style="margin-left:12px;border-left:3px solid '+color+';padding-left:12px;">';
     html += '<div class="busq-proy-nombre">';
     html += '<span class="busq-proy-color" style="background:'+color+';"></span>';
     html += nombre;

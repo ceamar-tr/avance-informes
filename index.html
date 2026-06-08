@@ -173,6 +173,47 @@
   .vista-toggle{padding:5px 11px;border-radius:14px;font-size:12px;font-weight:500;border:1px solid var(--borde);cursor:pointer;background:var(--card-bg);color:var(--suave);transition:all .2s;margin-left:auto;}
   .vista-toggle:hover{border-color:var(--verde);color:var(--verde);}
   .vista-toggle.on{background:var(--verde);color:white;border-color:var(--verde);}
+  /* ── Actividad zona + Calendario compacto ── */
+  .actividad-zona{background:var(--card-bg);border-radius:var(--r);padding:10px 14px;margin-bottom:12px;box-shadow:var(--sombra);}
+  .actividad-zona .grid-toolbar{margin-bottom:0;border-bottom:1px solid var(--borde);padding-bottom:8px;margin-bottom:8px;}
+  .cal-user-select{font-size:11px;border:1px solid var(--borde);border-radius:10px;padding:2px 7px;background:var(--card-bg);color:var(--texto);cursor:pointer;outline:none;max-width:110px;}
+  /* Calendario compacto: layout horizontal */
+  .cal-wrap{display:flex;gap:12px;align-items:flex-start;}
+  .cal-left{flex-shrink:0;width:220px;}
+  .cal-right{flex:1;min-width:0;}
+  .cal-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+  .cal-titulo{font-size:11px;font-weight:700;color:var(--texto);}
+  .cal-nav-btn{background:none;border:none;cursor:pointer;color:var(--suave);font-size:12px;padding:0 4px;line-height:1;transition:color .15s;}
+  .cal-nav-btn:hover{color:var(--azul-c);}
+  .cal-grid7{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+  .cal-day-lbl{text-align:center;font-size:8px;font-weight:700;color:var(--suave);text-transform:uppercase;padding:0 0 3px;}
+  .cal-cell{height:26px;border-radius:5px;padding:2px 3px;background:var(--gris);cursor:pointer;transition:background .15s;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .cal-cell:hover{background:var(--azul-s);}
+  .cal-cell.cal-empty{background:transparent;cursor:default;pointer-events:none;}
+  .cal-cell.cal-today{outline:2px solid var(--azul-c);}
+  .cal-cell.cal-selected{background:var(--azul-s) !important;outline:2px solid var(--azul-c);}
+  .cal-cell.cal-has-act{background:var(--verde-s);}
+  .cal-cell.cal-has-act:hover{background:#c8e6c9;}
+  .cal-num{font-size:9px;font-weight:600;color:var(--texto);line-height:1;}
+  .cal-cell.cal-today .cal-num{color:var(--azul-c);font-weight:800;}
+  .cal-dot-row{display:flex;gap:1px;margin-top:1px;}
+  .cal-dot{width:4px;height:4px;border-radius:50%;flex-shrink:0;}
+  .cal-dot-cambio{background:var(--verde);}
+  .cal-dot-correc{background:var(--azul-c);}
+  .cal-dot-resp{background:var(--amber);}
+  /* Panel derecho: detalle del día */
+  .cal-detail-empty{font-size:11px;color:var(--suave);font-style:italic;padding:4px 0;}
+  .cal-detail-titulo{font-size:11px;font-weight:700;color:var(--texto);margin-bottom:5px;text-transform:capitalize;}
+  .cal-act-list{max-height:110px;overflow-y:auto;display:flex;flex-direction:column;gap:3px;}
+  .cal-act-entry{display:flex;align-items:baseline;gap:5px;}
+  .cal-act-hora{font-size:9px;color:var(--suave);flex-shrink:0;white-space:nowrap;}
+  .cal-act-texto{font-size:10px;color:var(--texto);line-height:1.35;}
+  [data-theme="dark"] .actividad-zona{background:var(--card-bg);}
+  [data-theme="dark"] .actividad-zona .grid-toolbar{border-bottom-color:var(--borde);}
+  [data-theme="dark"] .cal-cell{background:var(--gris);}
+  [data-theme="dark"] .cal-cell:hover{background:var(--azul-s);}
+  [data-theme="dark"] .cal-cell.cal-has-act{background:var(--verde-s);}
+  [data-theme="dark"] .cal-user-select{background:var(--card-bg);color:var(--texto);border-color:var(--borde);}
   /* Pendientes badge en tarjeta */
   .pend-badge{font-size:10px;font-weight:600;background:var(--rojo-s);color:var(--rojo);border-radius:10px;padding:2px 8px;}
   .proy-avatares{display:flex;gap:3px;}
@@ -481,15 +522,18 @@
         <button class="fchip" onclick="fCamp('Otoño',this)">Otoño</button>
       </div>
     </div>
-    <!-- Toolbar: filtros cliente + sort + vista -->
+    <!-- Toolbar: filtros cliente + sort + vista + calendario actividad -->
     <div class="cli-filter-wrap" id="cli-filter-wrap"></div>
-    <div class="grid-toolbar">
-      <span class="flabel" style="font-size:11px;">Ordenar:</span>
-      <button class="sort-chip on" onclick="setSortMode('estado',this)">Estado</button>
-      <button class="sort-chip" onclick="setSortMode('pct_desc',this)">% Mayor</button>
-      <button class="sort-chip" onclick="setSortMode('pct_asc',this)">% Menor</button>
-      <button class="sort-chip" onclick="setSortMode('nombre',this)">A–Z</button>
-      <button class="vista-toggle" id="btn-vista-compacta" onclick="toggleVistaCompacta()">☰ Compacto</button>
+    <div class="actividad-zona">
+      <div class="grid-toolbar">
+        <span class="flabel" style="font-size:11px;">Ordenar:</span>
+        <button class="sort-chip on" onclick="setSortMode('estado',this)">Estado</button>
+        <button class="sort-chip" onclick="setSortMode('pct_desc',this)">% Mayor</button>
+        <button class="sort-chip" onclick="setSortMode('pct_asc',this)">% Menor</button>
+        <button class="sort-chip" onclick="setSortMode('nombre',this)">A–Z</button>
+        <button class="vista-toggle" id="btn-vista-compacta" onclick="toggleVistaCompacta()">☰ Compacto</button>
+      </div>
+      <div id="cal-actividad-panel"></div>
     </div>
     <div id="urgentes-panel"></div>
     <div id="peticiones-panel"></div>
@@ -879,7 +923,9 @@ function cargar(){
   Promise.all(promises).then(function(){
     var now2 = new Date();
     if(!mesSel){ var rec=detectRec(); mesSel=rec.mes; anioSel=rec.anio; }
+    detectarCambiosDrive(); // detectar cambios vs snapshot anterior
     buildSel(); buildProyectoSelect(); render(); renderAlertas(); renderEquipo(); renderSMA(); renderPendientes(); renderAnual();
+    renderCalActividad(); // refrescar calendario con datos actualizados
     document.getElementById('fhdr').textContent = now2.toLocaleDateString('es-CL',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
     var errTxt = errors.length ? ' · '+errors.length+' hoja'+(errors.length>1?'s':'')+' con error' : '';
@@ -1323,8 +1369,12 @@ function guardarCorreccion(proyecto, mes, anio){
   if(!input) return;
   var val = input.value.trim();
   var key = proyecto+'|'+mes+'|'+anio;
-  if(val) correccionResp[key] = val;
-  else delete correccionResp[key];
+  if(val){
+    correccionResp[key] = val;
+    logActividad(val+' asignado como responsable de corrección de '+displayNombre(proyecto), 'correc');
+  } else {
+    delete correccionResp[key];
+  }
   localStorage.setItem('ceamar_correc', JSON.stringify(correccionResp));
   render();
 }
@@ -1334,6 +1384,171 @@ function editarCorreccion(proyecto, mes, anio){
   render();
 }
 
+// ─── CALENDARIO DE ACTIVIDAD ─────────────────────────────
+var actividadLog = (function(){ try{ return JSON.parse(localStorage.getItem('ceamar_actividad')||'[]'); }catch(e){ return []; } })();
+var usuarioActivo = localStorage.getItem('ceamar_usuario_activo') || '';
+var calMesVista = new Date().getMonth();
+var calAnioVista = new Date().getFullYear();
+var calDiaSeleccionado = null;
+var RESPONSABLES_CAL = ['Nathalie','Rocío','Tamara','Abigail'];
+var MESES_CAL = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+var DIAS_SEMANA_CAL = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+
+function logActividad(texto, tipo){
+  var now = new Date();
+  var fechaKey = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+  var hora = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  actividadLog.unshift({fecha:fechaKey, hora:hora, texto:texto, tipo:tipo||'cambio'});
+  if(actividadLog.length>500) actividadLog=actividadLog.slice(0,500);
+  try{ localStorage.setItem('ceamar_actividad', JSON.stringify(actividadLog)); }catch(e){}
+  renderCalActividad();
+}
+
+// Detecta cambios en los datos de Drive vs snapshot anterior y los loguea
+function detectarCambiosDrive(){
+  var snapshotKey = 'ceamar_drive_snap';
+  var oldSnap = {};
+  try{ oldSnap = JSON.parse(localStorage.getItem(snapshotKey)||'{}'); }catch(e){}
+  var newSnap = {};
+  ALL.forEach(function(r){
+    var k = r.proyecto+'|'+r.mes+'|'+r.source+'|'+r.seccion;
+    newSnap[k] = r.completado;
+  });
+  // Comparar y loguear diferencias
+  var now = new Date();
+  var fechaKey = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+  var hora = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  var cambios = 0;
+  Object.keys(newSnap).forEach(function(k){
+    if(k in oldSnap && oldSnap[k] !== newSnap[k]){
+      var parts = k.split('|'); // proyecto, mes, source, seccion
+      var proyecto = parts[0], seccion = parts[3];
+      var accion = newSnap[k] ? 'completó' : 'reabrió';
+      var texto = 'Drive: '+accion+' "'+seccion+'" de '+displayNombre(proyecto);
+      actividadLog.unshift({fecha:fechaKey, hora:hora, texto:texto, tipo:'cambio'});
+      cambios++;
+    }
+  });
+  if(cambios>0){
+    if(actividadLog.length>500) actividadLog=actividadLog.slice(0,500);
+    try{ localStorage.setItem('ceamar_actividad', JSON.stringify(actividadLog)); }catch(e){}
+  }
+  try{ localStorage.setItem(snapshotKey, JSON.stringify(newSnap)); }catch(e){}
+}
+
+function setCalUser(user){
+  usuarioActivo = user;
+  localStorage.setItem('ceamar_usuario_activo', user);
+  renderCalActividad();
+}
+
+function calNavMes(dir){
+  calMesVista += dir;
+  if(calMesVista < 0){ calMesVista = 11; calAnioVista--; }
+  if(calMesVista > 11){ calMesVista = 0; calAnioVista++; }
+  calDiaSeleccionado = null;
+  renderCalActividad();
+}
+
+function selCalDia(fecha){
+  calDiaSeleccionado = (calDiaSeleccionado === fecha) ? null : fecha;
+  renderCalActividad();
+}
+
+function renderCalActividad(){
+  var panel = document.getElementById('cal-actividad-panel');
+  if(!panel) return;
+
+  var now = new Date();
+  var todayKey = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+  // Si no hay día seleccionado, seleccionar hoy por defecto
+  if(!calDiaSeleccionado) calDiaSeleccionado = todayKey;
+
+  var firstDay = new Date(calAnioVista, calMesVista, 1);
+  var daysInMonth = new Date(calAnioVista, calMesVista+1, 0).getDate();
+  var startDow = (firstDay.getDay() + 6) % 7; // 0=Lun
+
+  var mesLabel = MESES_CAL[calMesVista].substring(0,3)+' '+calAnioVista;
+
+  // Agrupar actividades por fecha
+  var actByDate = {};
+  actividadLog.forEach(function(e){
+    if(!actByDate[e.fecha]) actByDate[e.fecha] = [];
+    actByDate[e.fecha].push(e);
+  });
+
+  // ── Mini grilla (columna izquierda) ──
+  var gridHtml = '<div class="cal-header-row">'
+    +'<button class="cal-nav-btn" onclick="calNavMes(-1)">◀</button>'
+    +'<span class="cal-titulo">📅 '+mesLabel+'</span>'
+    +'<button class="cal-nav-btn" onclick="calNavMes(1)">▶</button>'
+    +'</div>'
+    +'<div class="cal-grid7">';
+
+  ['L','M','X','J','V','S','D'].forEach(function(d){
+    gridHtml += '<div class="cal-day-lbl">'+d+'</div>';
+  });
+
+  for(var i=0; i<startDow; i++){
+    gridHtml += '<div class="cal-cell cal-empty"></div>';
+  }
+
+  for(var d=1; d<=daysInMonth; d++){
+    var fk = calAnioVista+'-'+String(calMesVista+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    var acts = actByDate[fk] || [];
+    var isToday = fk === todayKey;
+    var isSel = fk === calDiaSeleccionado;
+    var hasAct = acts.length > 0;
+
+    var cls = 'cal-cell';
+    if(isToday) cls += ' cal-today';
+    if(isSel) cls += ' cal-selected';
+    else if(hasAct) cls += ' cal-has-act';
+
+    gridHtml += '<div class="'+cls+'" onclick="selCalDia(\''+fk+'\')"><div class="cal-num">'+d+'</div>';
+    if(hasAct){
+      var dotTypes = acts.slice(0,3).map(function(a){ return a.tipo||'cambio'; });
+      gridHtml += '<div class="cal-dot-row">';
+      dotTypes.forEach(function(t){ gridHtml += '<div class="cal-dot cal-dot-'+t+'"></div>'; });
+      gridHtml += '</div>';
+    }
+    gridHtml += '</div>';
+  }
+  gridHtml += '</div>'; // end cal-grid7
+
+  // ── Detalle del día seleccionado (columna derecha) ──
+  var detHtml = '';
+  if(calDiaSeleccionado){
+    var dActs = actByDate[calDiaSeleccionado] || [];
+    var dParts = calDiaSeleccionado.split('-');
+    var dDate = new Date(+dParts[0], +dParts[1]-1, +dParts[2]);
+    var dLabel = DIAS_SEMANA_CAL[dDate.getDay()]+' '+dParts[2]+' de '+MESES_CAL[+dParts[1]-1];
+    detHtml += '<div class="cal-detail-titulo">'+dLabel+'</div>';
+    if(dActs.length){
+      detHtml += '<div class="cal-act-list">';
+      dActs.forEach(function(e){
+        detHtml += '<div class="cal-act-entry">'
+          +'<span class="cal-act-hora">'+e.hora+'</span>'
+          +'<span class="cal-act-texto">'+e.texto+'</span>'
+          +'</div>';
+      });
+      detHtml += '</div>';
+    } else {
+      detHtml += '<div class="cal-detail-empty">Sin actividad registrada</div>';
+    }
+  }
+
+  panel.innerHTML = '<div class="cal-wrap">'
+    +'<div class="cal-left">'+gridHtml+'</div>'
+    +'<div class="cal-right">'+detHtml+'</div>'
+    +'</div>';
+}
+
+// Inicializar calendario al cargar (siempre visible)
+document.addEventListener('DOMContentLoaded', function(){
+  renderCalActividad();
+});
+
 // ─── TOGGLE RÁPIDO SECCIÓN DESDE TARJETA ────────────────
 function toggleSeccion(proyecto, seccion){
   var idx = ALL.findIndex(function(r){
@@ -1342,6 +1557,14 @@ function toggleSeccion(proyecto, seccion){
   if(idx<0) return;
   var nuevoVal = !ALL[idx].completado;
   ALL[idx].completado = nuevoVal;
+
+  // Log de actividad
+  var actor = usuarioActivo || ALL[idx].responsable || 'El equipo';
+  var accion = nuevoVal ? 'completó' : 'reabrió';
+  var secShort = seccion.length>30 ? seccion.substring(0,28)+'…' : seccion;
+  var proyShort = displayNombre(proyecto);
+  logActividad(actor+' '+accion+' "'+secShort+'" de '+proyShort, 'cambio');
+
   render(); // render inmediato para feedback visual
 
   // Sincronizar con Google Sheets en background
@@ -1817,6 +2040,15 @@ function saveField(source, mes, proyecto, seccion, field, value){
     body:payload
   }).then(function(){
     showToast('✓ Guardado en Drive', 'ok');
+    // Log de actividad para cambios de responsable
+    if(field==='responsable' && value){
+      var actor = usuarioActivo || 'El equipo';
+      logActividad(actor+' asignó a '+value+' en "'+seccion+'" de '+displayNombre(proyecto), 'resp');
+    } else if(field==='completado'){
+      var actor2 = usuarioActivo || 'El equipo';
+      var accion2 = (value===true||value==='true') ? 'completó' : 'reabrió';
+      logActividad(actor2+' '+accion2+' "'+seccion+'" de '+displayNombre(proyecto), 'cambio');
+    }
     // Actualizar datos en memoria
     ALL.forEach(function(r){
       if(r.proyecto===proyecto && r.seccion===seccion && r.mes===mes && r.source===source){

@@ -902,6 +902,7 @@ function fetchSheet(id, sheetName, source){
 
 // ─── CARGA PRINCIPAL ─────────────────────────────────────
 function cargar(){
+  fetchConfig();
   var now = new Date();
   var curMes = MESES_ORD[now.getMonth()];
 
@@ -1392,12 +1393,16 @@ function guardarCorreccion(proyecto, mes, anio){
   } else {
     delete correccionResp[key];
   }
-  localStorage.setItem('ceamar_correc', JSON.stringify(correccionResp));
+  var _cr=JSON.stringify(correccionResp);
+  localStorage.setItem('ceamar_correc',_cr);
+  saveConfig('correc_resp',_cr);
   render();
 }
 function editarCorreccion(proyecto, mes, anio){
   delete correccionResp[proyecto+'|'+mes+'|'+anio];
-  localStorage.setItem('ceamar_correc', JSON.stringify(correccionResp));
+  var _cr2=JSON.stringify(correccionResp);
+  localStorage.setItem('ceamar_correc',_cr2);
+  saveConfig('correc_resp',_cr2);
   render();
 }
 
@@ -1647,6 +1652,40 @@ function verDetalle(nombre){
 // ── Estado colores y colapso urgentes ────────────────────
 var urgentesAbierto = localStorage.getItem('ceamar_urg_open') !== 'false';
 var urgentesColores = JSON.parse(localStorage.getItem('ceamar_urg_colores') || '{}');
+// ─── CONFIG COMPARTIDA (Google Sheets) ───────────────────
+function fetchConfig(){
+  var url = 'https://docs.google.com/spreadsheets/d/'+S26+'/gviz/tq?tqx=out:json&sheet=Config&headers=1';
+  fetch(url)
+    .then(function(r){ return r.text(); })
+    .then(function(txt){
+      var m = txt.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+      if(!m) return;
+      var json; try{ json=JSON.parse(m[1]); }catch(e){ return; }
+      if(!json.table||!json.table.rows) return;
+      json.table.rows.forEach(function(row){
+        if(!row.c||!row.c[0]||row.c[0].v==null) return;
+        var key=String(row.c[0].v).trim();
+        var val=row.c[1]&&row.c[1].v!=null?String(row.c[1].v).trim():'';
+        if(key==='urgentes_colores'&&val){
+          try{ urgentesColores=JSON.parse(val); localStorage.setItem('ceamar_urg_colores',val); renderUrgentes(); }catch(e){}
+        }
+        if(key==='correc_resp'&&val){
+          try{ correccionResp=JSON.parse(val); localStorage.setItem('ceamar_correc',val); }catch(e){}
+        }
+        if(key==='peticiones'&&val){
+          try{ peticionesList=JSON.parse(val); localStorage.setItem('ceamar_peticiones',val); renderPeticiones(); }catch(e){}
+        }
+      });
+    })
+    .catch(function(){});
+}
+function saveConfig(key, value){
+  if(!APPS_SCRIPT_URL_2026||APPS_SCRIPT_URL_2026.indexOf('PEGAR_AQUI')>=0) return;
+  fetch(APPS_SCRIPT_URL_2026,{
+    method:'POST', mode:'no-cors',
+    body:JSON.stringify({action:'setConfig', key:key, value:value})
+  });
+}
 
 function toggleUrgentes(){
   urgentesAbierto = !urgentesAbierto;
@@ -1659,7 +1698,9 @@ function toggleUrgentes(){
 function setUrgentColor(proyecto, color, el){
   if(urgentesColores[proyecto]===color) color='ninguno';
   urgentesColores[proyecto] = color;
-  localStorage.setItem('ceamar_urg_colores', JSON.stringify(urgentesColores));
+  var _uc=JSON.stringify(urgentesColores);
+  localStorage.setItem('ceamar_urg_colores',_uc);
+  saveConfig('urgentes_colores',_uc);
   renderUrgentes();
 }
 
@@ -1746,13 +1787,17 @@ function agregarPeticion(){
   var resp = document.getElementById('pet-resp').value;
   if(!txt) return;
   peticionesList.unshift({id: Date.now(), texto: txt, responsable: resp, fecha: new Date().toLocaleDateString('es-CL')});
-  localStorage.setItem('ceamar_peticiones', JSON.stringify(peticionesList));
+  var _pl=JSON.stringify(peticionesList);
+  localStorage.setItem('ceamar_peticiones',_pl);
+  saveConfig('peticiones',_pl);
   document.getElementById('pet-input').value = '';
   renderPeticiones();
 }
 function borrarPeticion(id){
   peticionesList = peticionesList.filter(function(p){ return p.id!==id; });
-  localStorage.setItem('ceamar_peticiones', JSON.stringify(peticionesList));
+  var _pl2=JSON.stringify(peticionesList);
+  localStorage.setItem('ceamar_peticiones',_pl2);
+  saveConfig('peticiones',_pl2);
   renderPeticiones();
 }
 function renderPeticiones(){

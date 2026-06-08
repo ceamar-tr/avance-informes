@@ -249,12 +249,15 @@
   .anio-btn.on{background:var(--verde);color:white;border-color:var(--verde);}
   .anual-wrap{overflow-x:auto;}
   .anual-table{width:100%;border-collapse:collapse;font-size:12px;min-width:700px;}
-  .anual-table th{text-align:center;padding:7px 6px;font-size:10px;font-weight:700;color:var(--suave);text-transform:uppercase;background:var(--gris);border-bottom:2px solid var(--borde);white-space:nowrap;}
-  .anual-table th.th-proy{text-align:left;min-width:160px;}
-  .anual-table td{padding:6px;text-align:center;border-bottom:1px solid #f0f0f0;}
-  .anual-table td.td-proy{text-align:left;font-weight:600;color:var(--azul);font-size:12px;padding-left:9px;}
-  .anual-table tr:hover td{background:#fafafa;}
+  .anual-table th{text-align:center;padding:8px 6px;font-size:10px;font-weight:700;color:var(--suave);text-transform:uppercase;background:var(--gris);border-bottom:2px solid var(--borde);white-space:nowrap;position:sticky;top:0;z-index:2;}
+  .anual-table th.th-proy{text-align:left;min-width:180px;}
+  .anual-table td{padding:8px 6px;text-align:center;border-bottom:1px solid var(--borde);}
+  .anual-table td.td-proy{text-align:left;font-weight:600;color:var(--azul);font-size:12px;padding-left:10px;white-space:nowrap;}
+  .anual-table tr:nth-child(even) td{background:rgba(0,0,0,0.018);}
+  .anual-table tr:hover td{background:var(--azul-s) !important;}
   .anual-table tr.total-row td{background:var(--gris);font-weight:700;border-top:2px solid var(--borde);}
+  .td-proy-link{cursor:pointer;transition:color .15s;}
+  .td-proy-link:hover{color:var(--azul-c);text-decoration:underline;}
   .mes-dot{width:32px;height:20px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;cursor:pointer;transition:transform .15s;}
   .mes-dot:hover{transform:scale(1.15);}
   .mes-dot.ok{background:var(--verde-s);color:var(--verde);}
@@ -287,14 +290,46 @@
   .resp-chip .av-xs{width:16px;height:16px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:6px;font-weight:700;}
   /* URGENTES */
   .urgentes-wrap{background:linear-gradient(135deg,#7f0000,#c62828);border-radius:var(--r);padding:16px 20px;margin-bottom:18px;color:white;box-shadow:0 4px 20px rgba(198,40,40,0.35);}
-  .urgentes-titulo{font-size:14px;font-weight:700;margin-bottom:2px;display:flex;align-items:center;gap:8px;}
-  .urgentes-sub{font-size:11px;opacity:.8;margin-bottom:12px;}
+  .urgentes-titulo{font-size:14px;font-weight:700;margin-bottom:2px;display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;}
+  .urgentes-toggle-icon{margin-left:auto;font-size:12px;opacity:.8;transition:transform .2s;}
+  .urgentes-toggle-icon.open{transform:rotate(180deg);}
+  .urgentes-body{overflow:hidden;transition:max-height .3s ease;}
+  .urgentes-sub{font-size:11px;opacity:.8;margin-bottom:12px;margin-top:4px;}
   .urgentes-grid{display:flex;flex-direction:column;gap:6px;}
-  .urgente-row{background:rgba(255,255,255,0.12);border-radius:8px;padding:8px 12px;display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;}
-  .urgente-proy{font-size:12px;font-weight:700;color:white;min-width:160px;}
-  .urgente-seccs{display:flex;flex-wrap:wrap;gap:4px;}
+  .urgente-row{background:rgba(255,255,255,0.12);border-radius:8px;padding:8px 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .urgente-proy{font-size:12px;font-weight:700;color:white;flex:1;min-width:120px;}
+  .urgente-seccs{display:flex;flex-wrap:wrap;gap:4px;flex:2;}
   .urgente-secc{background:rgba(255,255,255,0.2);border-radius:6px;padding:2px 8px;font-size:11px;color:white;border:1px solid rgba(255,255,255,0.3);}
+  .urgente-color-btns{display:flex;gap:4px;flex-shrink:0;}
+  .urgente-color-btn{width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,0.5);cursor:pointer;transition:transform .15s;flex-shrink:0;}
+  .urgente-color-btn:hover,.urgente-color-btn.active{transform:scale(1.3);border-color:white;}
+  .urgente-color-btn.c-rojo{background:#ff5252;}
+  .urgente-color-btn.c-amarillo{background:#ffd740;}
+  .urgente-color-btn.c-verde{background:#69f0ae;}
+  .urgente-color-btn.c-ninguno{background:rgba(255,255,255,0.25);}
+  .urgente-row.col-rojo{background:rgba(255,82,82,0.35);border-left:3px solid #ff5252;}
+  .urgente-row.col-amarillo{background:rgba(255,215,64,0.25);border-left:3px solid #ffd740;}
+  .urgente-row.col-verde{background:rgba(105,240,174,0.2);border-left:3px solid #69f0ae;}
   [data-theme="dark"] .urgentes-wrap{background:linear-gradient(135deg,#4a0000,#7f0000);}
+  /* Peticiones */
+  .peticiones-wrap{background:#fffde7;border:1.5px solid #ffd54f;border-radius:var(--r);padding:16px 20px;margin-bottom:18px;}
+  [data-theme="dark"] .peticiones-wrap{background:#2a2200;border-color:#ffd54f;}
+  .peticiones-titulo{font-size:13px;font-weight:700;color:#e65100;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+  .peticion-item{background:white;border:1px solid #ffe082;border-radius:10px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:flex-start;gap:10px;}
+  [data-theme="dark"] .peticion-item{background:#1a1500;border-color:#ffd54f;}
+  .peticion-color{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+  .peticion-texto{flex:1;font-size:12px;color:var(--texto);line-height:1.5;}
+  .peticion-meta{font-size:10px;color:var(--suave);margin-top:3px;}
+  .peticion-del{background:none;border:none;cursor:pointer;color:var(--suave);font-size:14px;padding:0 4px;flex-shrink:0;}
+  .peticion-del:hover{color:var(--rojo);}
+  .peticion-form{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;}
+  .peticion-input{flex:1;min-width:180px;padding:7px 12px;border-radius:10px;border:1px solid #ffe082;font-size:12px;font-family:'DM Sans',sans-serif;outline:none;background:white;color:var(--texto);}
+  [data-theme="dark"] .peticion-input{background:#1a1500;border-color:#ffd54f;color:var(--texto);}
+  .peticion-input:focus{border-color:#f57c00;}
+  .peticion-select{padding:7px 10px;border-radius:10px;border:1px solid #ffe082;font-size:12px;font-family:'DM Sans',sans-serif;background:white;color:var(--texto);cursor:pointer;outline:none;}
+  [data-theme="dark"] .peticion-select{background:#1a1500;border-color:#ffd54f;color:var(--texto);}
+  .peticion-add-btn{padding:7px 14px;border-radius:10px;background:#f57c00;color:white;border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .2s;}
+  .peticion-add-btn:hover{background:#e65100;}
   /* BÚSQUEDA HISTÓRICA */
   .busq-hist{background:var(--card-bg);border-radius:var(--r);padding:18px 20px;box-shadow:var(--sombra);margin-bottom:18px;display:none;border-left:4px solid var(--azul-c);}
   .busq-hist.visible{display:block;}
@@ -447,6 +482,7 @@
       <button class="vista-toggle" id="btn-vista-compacta" onclick="toggleVistaCompacta()">☰ Compacto</button>
     </div>
     <div id="urgentes-panel"></div>
+    <div id="peticiones-panel"></div>
     <div class="kgrid" id="kgrid"><div class="loading"><div class="spin-lg"></div></div></div>
     <div class="detalle-panel" id="detalle-panel">
       <div class="detalle-header">
@@ -673,6 +709,7 @@ document.addEventListener('DOMContentLoaded',function(){
     var zi = parseInt(localStorage.getItem('ceamar_zoom'));
     if(!isNaN(zi) && zi>=0 && zi<ZOOM_LEVELS.length){ zoomIdx=zi; document.querySelector('.wrap').style.zoom=ZOOM_LEVELS[zoomIdx]; }
   }catch(e){}
+  renderPeticiones();
 });
 
 // Dark mode
@@ -1304,13 +1341,30 @@ function verDetalle(nombre){
   panel.className='detalle-panel visible';
   panel.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
+// ── Estado colores y colapso urgentes ────────────────────
+var urgentesAbierto = localStorage.getItem('ceamar_urg_open') !== 'false';
+var urgentesColores = JSON.parse(localStorage.getItem('ceamar_urg_colores') || '{}');
+
+function toggleUrgentes(){
+  urgentesAbierto = !urgentesAbierto;
+  localStorage.setItem('ceamar_urg_open', urgentesAbierto);
+  var body = document.getElementById('urgentes-body');
+  var icon = document.getElementById('urgentes-icon');
+  if(body){ body.style.display = urgentesAbierto ? '' : 'none'; }
+  if(icon){ icon.className = 'urgentes-toggle-icon'+(urgentesAbierto?' open':''); }
+}
+function setUrgentColor(proyecto, color, el){
+  if(urgentesColores[proyecto]===color) color='ninguno';
+  urgentesColores[proyecto] = color;
+  localStorage.setItem('ceamar_urg_colores', JSON.stringify(urgentesColores));
+  renderUrgentes();
+}
+
 function renderUrgentes(){
   var panel = document.getElementById('urgentes-panel');
   if(!panel) return;
-  // Secciones sin responsable asignado en el mes/año actual
   var fd = ALL.filter(function(r){ return r.mes===mesSel && r.source===anioSel && (!r.responsable||!r.responsable.trim()); });
   if(!fd.length){ panel.innerHTML=''; return; }
-  // Agrupar por proyecto
   var map = {};
   fd.forEach(function(r){
     if(!map[r.proyecto]) map[r.proyecto]=[];
@@ -1318,19 +1372,85 @@ function renderUrgentes(){
   });
   var proyNames = Object.keys(map).sort();
   var totalSecc = fd.length;
+  // Ordenar: rojo primero, luego amarillo, luego sin color, luego verde
+  var colorOrder = {rojo:0, amarillo:1, ninguno:2, verde:3};
+  proyNames.sort(function(a,b){
+    var ca = urgentesColores[a]||'ninguno', cb = urgentesColores[b]||'ninguno';
+    return (colorOrder[ca]||2)-(colorOrder[cb]||2);
+  });
   var rows = proyNames.map(function(p){
+    var col = urgentesColores[p]||'ninguno';
+    var colClass = col!=='ninguno'?' col-'+col:'';
     var seccs = map[p].map(function(s){ return '<span class="urgente-secc">'+s+'</span>'; }).join('');
-    return '<div class="urgente-row">'
-      +'<span class="urgente-proy">⚠ '+p+'</span>'
-      +'<span class="urgentes-seccs" style="display:flex;flex-wrap:wrap;gap:4px;">'+seccs+'</span>'
+    var safePU = p.replace(/'/g,"\\'");
+    var colorBtns = ['rojo','amarillo','verde','ninguno'].map(function(c){
+      var title = c==='rojo'?'Crítico':c==='amarillo'?'Urgente':c==='verde'?'Puede esperar':'Sin color';
+      return '<button class="urgente-color-btn c-'+c+(col===c?' active':'')+'" title="'+title+'" onclick="setUrgentColor(\''+safePU+'\',\''+c+'\',this)"></button>';
+    }).join('');
+    return '<div class="urgente-row'+colClass+'">'
+      +'<span class="urgente-proy">'+p+'</span>'
+      +'<span class="urgentes-seccs">'+seccs+'</span>'
+      +'<div class="urgente-color-btns">'+colorBtns+'</div>'
       +'</div>';
   }).join('');
+
   panel.innerHTML = '<div class="urgentes-wrap">'
-    +'<div class="urgentes-titulo">📭 Pendiente de recepción — '+mesSel+' '+anioSel
-    +'<span style="background:rgba(255,255,255,0.25);border-radius:20px;padding:2px 10px;font-size:11px;">'+totalSecc+' sección'+(totalSecc!==1?'es':'')+' · '+proyNames.length+' proyecto'+(proyNames.length!==1?'s':'')+'</span>'
+    +'<div class="urgentes-titulo" onclick="toggleUrgentes()">'
+    +'📭 Pendiente de recepción — '+mesSel+' '+anioSel+' '
+    +'<span style="background:rgba(255,255,255,0.25);border-radius:20px;padding:2px 10px;font-size:11px;">'+totalSecc+' '+(totalSecc!==1?'secciones':'sección')+' · '+proyNames.length+' '+(proyNames.length!==1?'proyectos':'proyecto')+'</span>'
+    +'<span class="urgentes-toggle-icon'+(urgentesAbierto?' open':'')+'" id="urgentes-icon">▼</span>'
     +'</div>'
-    +'<div class="urgentes-sub">Las siguientes secciones aún no tienen responsable registrado. Actualizar la planilla una vez que la información sea recibida.</div>'
+    +'<div id="urgentes-body" style="'+(urgentesAbierto?'':'display:none;')+'">'
+    +'<div class="urgentes-sub">Secciones sin responsable. <span style="opacity:.7;font-size:10px;">🔴 Crítico · 🟡 Urgente · 🟢 Puede esperar</span></div>'
     +'<div class="urgentes-grid">'+rows+'</div>'
+    +'</div>'
+    +'</div>';
+}
+
+// ── Peticiones ────────────────────────────────────────────
+var RESPONSABLES_PETICIONES = ['Nathalie','Rocío','Tamara','Abigail'];
+var peticionesList = JSON.parse(localStorage.getItem('ceamar_peticiones') || '[]');
+
+function agregarPeticion(){
+  var txt = (document.getElementById('pet-input').value||'').trim();
+  var resp = document.getElementById('pet-resp').value;
+  if(!txt) return;
+  peticionesList.unshift({id: Date.now(), texto: txt, responsable: resp, fecha: new Date().toLocaleDateString('es-CL')});
+  localStorage.setItem('ceamar_peticiones', JSON.stringify(peticionesList));
+  document.getElementById('pet-input').value = '';
+  renderPeticiones();
+}
+function borrarPeticion(id){
+  peticionesList = peticionesList.filter(function(p){ return p.id!==id; });
+  localStorage.setItem('ceamar_peticiones', JSON.stringify(peticionesList));
+  renderPeticiones();
+}
+function renderPeticiones(){
+  var panel = document.getElementById('peticiones-panel');
+  if(!panel) return;
+  var items = peticionesList.map(function(p){
+    var colores = {Nathalie:'#1565c0',Rocío:'#6a1b9a',Tamara:'#1a5c2e',Abigail:'#e65100'};
+    var col = colores[p.responsable]||'var(--suave)';
+    return '<div class="peticion-item">'
+      +'<div class="peticion-color" style="background:'+col+';margin-top:3px;"></div>'
+      +'<div style="flex:1;min-width:0;">'
+        +'<div class="peticion-texto">'+p.texto+'</div>'
+        +'<div class="peticion-meta" style="color:'+col+';">'+p.responsable+' · '+p.fecha+'</div>'
+      +'</div>'
+      +'<button class="peticion-del" onclick="borrarPeticion('+p.id+')" title="Eliminar">✕</button>'
+    +'</div>';
+  }).join('');
+  var opts = RESPONSABLES_PETICIONES.map(function(r){ return '<option>'+r+'</option>'; }).join('');
+  panel.innerHTML = '<div class="peticiones-wrap">'
+    +'<div class="peticiones-titulo">💬 Peticiones del equipo'
+      +(peticionesList.length?' <span style="background:#ffe082;color:#e65100;border-radius:10px;padding:1px 8px;font-size:11px;">'+peticionesList.length+'</span>':'')
+    +'</div>'
+    +(items||'<div style="font-size:12px;color:var(--suave);margin-bottom:10px;">Sin peticiones pendientes.</div>')
+    +'<div class="peticion-form">'
+      +'<input class="peticion-input" id="pet-input" type="text" placeholder="Descripción de la petición..." onkeydown="if(event.key===\'Enter\')agregarPeticion()">'
+      +'<select class="peticion-select" id="pet-resp">'+opts+'</select>'
+      +'<button class="peticion-add-btn" onclick="agregarPeticion()">+ Agregar</button>'
+    +'</div>'
     +'</div>';
 }
 
@@ -1453,6 +1573,18 @@ function cerrarBusqHist(){
 }
 
 // ─── PANEL LATERAL ───────────────────────────────────────
+// Abre el panel lateral desde Vista Anual (cambia mes/año activo si hace falta)
+function abrirSidePanelAnual(nombre, mes, anio){
+  // Cambiar al mes/año correcto sin salir de la vista anual
+  mesSel = mes;
+  anioSel = anio;
+  // Encontrar la campaña del proyecto en ese mes/año
+  var campana = '';
+  ALL.filter(function(r){ return r.proyecto===nombre&&r.mes===mes&&r.source===anio; })
+     .forEach(function(r){ if(!campana) campana=r.campanaNorm||r.campana||''; });
+  abrirSidePanel(nombre, mes, anio, campana);
+}
+
 function abrirSidePanel(nombre, mes, anio, campana){
   var rows = ALL.filter(function(r){
     return r.proyecto===nombre && r.mes===mes && r.source===anio &&
@@ -1820,7 +1952,7 @@ function renderEquipo(){
     }).join('');
 
     var btnLabel = v.t > 0
-      ? 'Ver '+v.t+' sección'+(v.t!==1?'es':'')+' ▾'
+      ? 'Ver '+v.t+' '+(v.t!==1?'secciones':'sección')+' ▾'
       : 'Sin secciones asignadas';
 
     return '<div class="equipo-card '+colorClass+'">'+
@@ -1851,7 +1983,7 @@ function toggleEquipoDetalle(btn){
   var nombre = btn.closest('.equipo-card').querySelector('.eq-nombre').textContent;
   var total  = btn.closest('.equipo-card').querySelector('.eq-stats').textContent.match(/(\d+) de (\d+)/);
   btn.textContent = isOpen
-    ? 'Ver '+(total?total[2]:'')+ ' sección'+(total&&total[2]!=='1'?'es':'')+' ▾'
+    ? 'Ver '+(total?total[2]:'')+' '+(total&&total[2]!=='1'?'secciones':'sección')+' ▾'
     : 'Ocultar ▴';
 }
 
@@ -2136,14 +2268,22 @@ function renderMatriz(proyNombres, mapa, data){
   th+='</tr>';
   var tbody='';
   proyNombres.forEach(function(p){
-    tbody+='<tr><td class="td-proy" style="border-left:3px solid '+getPrColor(p)+';">'+p+'</td>';
+    var safePM=p.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    var color=getPrColor(p);
+    // Mes más reciente con datos para abrir el panel
+    var ultimoMes=null;
+    mesesDisp.slice().reverse().forEach(function(m){ if(!ultimoMes&&mapa[p][m]) ultimoMes=m; });
+    var clickProy=ultimoMes?'onclick="abrirSidePanelAnual(\''+safePM+'\',\''+ultimoMes+'\',\''+anioAnual+'\')"':'';
+    tbody+='<tr><td class="td-proy" style="border-left:4px solid '+color+';">'
+      +'<span class="td-proy-link" title="Ver detalle del proyecto" '+clickProy+'>'+displayNombre(p)+'</span></td>';
     mesesDisp.forEach(function(m){
       var v=mapa[p][m];
       if(!v){ tbody+='<td><span class="mes-dot vacio">—</span></td>'; return; }
       var pct=Math.round(v.comp/v.tot*100);
       var cls=pct===100?'ok':pct>0?'parcial':'sin';
       var lbl=pct===100?'✓':pct+'%';
-      tbody+='<td><span class="mes-dot '+cls+'" title="'+p+' · '+m+' · '+v.comp+'/'+v.tot+' secc." onclick="irAMes(\''+m+'\',\''+anioAnual+'\')">'+lbl+'</span></td>';
+      var safePM2=p.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      tbody+='<td><span class="mes-dot '+cls+'" title="'+p+' · '+m+' · '+v.comp+'/'+v.tot+' secciones" onclick="abrirSidePanelAnual(\''+safePM2+'\',\''+m+'\',\''+anioAnual+'\')">'+lbl+'</span></td>';
     });
     tbody+='</tr>';
   });
@@ -2173,19 +2313,22 @@ function renderGantt(proyNombres, mapa){
 
   var tbody = '';
   proyNombres.forEach(function(p){
-    var mesesProy = mesesAll.filter(function(m){ return mapa[p][m]; });
     var totSec=0, compSec=0;
     Object.keys(mapa[p]).forEach(function(m){ totSec+=mapa[p][m].tot; compSec+=mapa[p][m].comp; });
     var color = getPrColor(p);
-    tbody += '<tr><td class="td-proy" style="border-left:3px solid '+color+';">'+p+'</td>';
+    var safePG=p.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    var ultimoMesG=null;
+    mesesAll.slice().reverse().forEach(function(m){ if(!ultimoMesG&&mapa[p][m]) ultimoMesG=m; });
+    var clickProyG=ultimoMesG?'onclick="abrirSidePanelAnual(\''+safePG+'\',\''+ultimoMesG+'\',\''+anioAnual+'\')"':'';
+    tbody += '<tr><td class="td-proy" style="border-left:4px solid '+color+';">'
+      +'<span class="td-proy-link" title="Ver detalle" '+clickProyG+'>'+displayNombre(p)+'</span></td>';
     mesesAll.forEach(function(m){
       var v = mapa[p][m];
       if(!v){ tbody+='<td></td>'; return; }
       var pct = Math.round(v.comp/v.tot*100);
       var done = pct===100;
-      // Barra de progreso horizontal estilo Gantt
       tbody += '<td style="padding:4px 3px;">'
-        + '<div title="'+p+' · '+m+' · '+v.comp+'/'+v.tot+' sec." onclick="irAMes(\''+m+'\',\''+anioAnual+'\')" '
+        + '<div title="'+p+' · '+m+' · '+v.comp+'/'+v.tot+' secciones" onclick="abrirSidePanelAnual(\''+safePG+'\',\''+m+'\',\''+anioAnual+'\')" '
         + 'style="cursor:pointer;background:'+(done?'var(--verde-s)':'var(--amber-s)')+';border:1px solid '+(done?'var(--verde)':color)+';'
         + 'border-radius:4px;height:24px;position:relative;overflow:hidden;min-width:44px;">'
         + '<div style="position:absolute;left:0;top:0;height:100%;width:'+pct+'%;background:'+(done?'var(--verde)':color)+';opacity:0.35;transition:width .5s;"></div>'
@@ -2193,7 +2336,6 @@ function renderGantt(proyNombres, mapa){
         + (done?'✓':pct+'%')+'</span>'
         + '</div></td>';
     });
-    // Columna resumen total
     var tpct = totSec>0?Math.round(compSec/totSec*100):0;
     tbody += '<td style="text-align:center;">'
       + '<span class="pill '+(tpct===100?'p-ok':tpct>0?'p-parcial':'p-pend')+'">'+tpct+'%</span>'

@@ -175,7 +175,10 @@
   .vista-toggle.on{background:var(--verde);color:white;border-color:var(--verde);}
   /* ── Actividad zona + Calendario compacto ── */
   .actividad-zona{background:var(--card-bg);border-radius:var(--r);padding:10px 14px;margin-bottom:12px;box-shadow:var(--sombra);}
-  .actividad-zona .grid-toolbar{margin-bottom:0;border-bottom:1px solid var(--borde);padding-bottom:8px;margin-bottom:8px;}
+  .actividad-zona-inner{display:flex;gap:16px;align-items:flex-start;}
+  .actividad-controles{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;justify-content:flex-start;}
+  .actividad-controles .grid-toolbar{margin-bottom:0;flex-wrap:wrap;}
+  #cal-actividad-panel{flex-shrink:0;width:420px;}
   .cal-user-select{font-size:11px;border:1px solid var(--borde);border-radius:10px;padding:2px 7px;background:var(--card-bg);color:var(--texto);cursor:pointer;outline:none;max-width:110px;}
   /* Calendario compacto: layout horizontal */
   .cal-wrap{display:flex;gap:12px;align-items:flex-start;}
@@ -209,7 +212,6 @@
   .cal-act-hora{font-size:9px;color:var(--suave);flex-shrink:0;white-space:nowrap;}
   .cal-act-texto{font-size:10px;color:var(--texto);line-height:1.35;}
   [data-theme="dark"] .actividad-zona{background:var(--card-bg);}
-  [data-theme="dark"] .actividad-zona .grid-toolbar{border-bottom-color:var(--borde);}
   [data-theme="dark"] .cal-cell{background:var(--gris);}
   [data-theme="dark"] .cal-cell:hover{background:var(--azul-s);}
   [data-theme="dark"] .cal-cell.cal-has-act{background:var(--verde-s);}
@@ -522,18 +524,24 @@
         <button class="fchip" onclick="fCamp('Otoño',this)">Otoño</button>
       </div>
     </div>
-    <!-- Toolbar: filtros cliente + sort + vista + calendario actividad -->
+    <!-- Toolbar: filtros cliente + sort + calendario actividad -->
     <div class="cli-filter-wrap" id="cli-filter-wrap"></div>
     <div class="actividad-zona">
-      <div class="grid-toolbar">
-        <span class="flabel" style="font-size:11px;">Ordenar:</span>
-        <button class="sort-chip on" onclick="setSortMode('estado',this)">Estado</button>
-        <button class="sort-chip" onclick="setSortMode('pct_desc',this)">% Mayor</button>
-        <button class="sort-chip" onclick="setSortMode('pct_asc',this)">% Menor</button>
-        <button class="sort-chip" onclick="setSortMode('nombre',this)">A–Z</button>
-        <button class="vista-toggle" id="btn-vista-compacta" onclick="toggleVistaCompacta()">☰ Compacto</button>
+      <div class="actividad-zona-inner">
+        <!-- Izquierda: controles de orden y vista -->
+        <div class="actividad-controles">
+          <div class="grid-toolbar">
+            <span class="flabel" style="font-size:11px;">Ordenar:</span>
+            <button class="sort-chip on" onclick="setSortMode('estado',this)">Estado</button>
+            <button class="sort-chip" onclick="setSortMode('pct_desc',this)">% Mayor</button>
+            <button class="sort-chip" onclick="setSortMode('pct_asc',this)">% Menor</button>
+            <button class="sort-chip" onclick="setSortMode('nombre',this)">A–Z</button>
+          </div>
+          <button class="vista-toggle" id="btn-vista-compacta" onclick="toggleVistaCompacta()">☰ Compacto</button>
+        </div>
+        <!-- Derecha: calendario de actividad -->
+        <div id="cal-actividad-panel"></div>
       </div>
-      <div id="cal-actividad-panel"></div>
     </div>
     <div id="urgentes-panel"></div>
     <div id="peticiones-panel"></div>
@@ -1409,28 +1417,50 @@ function detectarCambiosDrive(){
   var snapshotKey = 'ceamar_drive_snap';
   var oldSnap = {};
   try{ oldSnap = JSON.parse(localStorage.getItem(snapshotKey)||'{}'); }catch(e){}
+  var esNuevo = Object.keys(oldSnap).length === 0;
+
   var newSnap = {};
   ALL.forEach(function(r){
     var k = r.proyecto+'|'+r.mes+'|'+r.source+'|'+r.seccion;
     newSnap[k] = r.completado;
   });
-  // Comparar y loguear diferencias
+
   var now = new Date();
   var fechaKey = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
   var hora = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
-  var cambios = 0;
-  Object.keys(newSnap).forEach(function(k){
-    if(k in oldSnap && oldSnap[k] !== newSnap[k]){
-      var parts = k.split('|'); // proyecto, mes, source, seccion
-      var proyecto = parts[0], seccion = parts[3];
-      var accion = newSnap[k] ? 'completó' : 'reabrió';
-      var texto = 'Drive: '+accion+' "'+seccion+'" de '+displayNombre(proyecto);
-      actividadLog.unshift({fecha:fechaKey, hora:hora, texto:texto, tipo:'cambio'});
-      cambios++;
-    }
-  });
-  if(cambios>0){
-    if(actividadLog.length>500) actividadLog=actividadLog.slice(0,500);
+  var nuevasEntradas = [];
+
+  if(esNuevo){
+    // Primera vez: registrar todas las secciones completadas del mes visible como "estado al cargar"
+    ALL.forEach(function(r){
+      if(r.completado && r.mes === mesSel && r.source === anioSel){
+        var actor = r.responsable ? r.responsable+' completó' : 'Completado:';
+        nuevasEntradas.push({
+          fecha: fechaKey, hora: hora,
+          texto: actor+' "'+r.seccion+'" de '+displayNombre(r.proyecto),
+          tipo: 'cambio'
+        });
+      }
+    });
+  } else {
+    // Cargas posteriores: solo cambios reales desde Drive
+    Object.keys(newSnap).forEach(function(k){
+      if(k in oldSnap && oldSnap[k] !== newSnap[k]){
+        var parts = k.split('|');
+        var proyecto = parts[0], seccion = parts[3];
+        var accion = newSnap[k] ? 'completó' : 'reabrió';
+        nuevasEntradas.push({
+          fecha: fechaKey, hora: hora,
+          texto: 'Drive: '+accion+' "'+seccion+'" de '+displayNombre(proyecto),
+          tipo: 'cambio'
+        });
+      }
+    });
+  }
+
+  if(nuevasEntradas.length > 0){
+    actividadLog = nuevasEntradas.concat(actividadLog);
+    if(actividadLog.length > 500) actividadLog = actividadLog.slice(0, 500);
     try{ localStorage.setItem('ceamar_actividad', JSON.stringify(actividadLog)); }catch(e){}
   }
   try{ localStorage.setItem(snapshotKey, JSON.stringify(newSnap)); }catch(e){}

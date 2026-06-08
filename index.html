@@ -175,10 +175,10 @@
   .vista-toggle.on{background:var(--verde);color:white;border-color:var(--verde);}
   /* ── Actividad zona + Calendario compacto ── */
   .actividad-zona{background:var(--card-bg);border-radius:var(--r);padding:10px 14px;margin-bottom:12px;box-shadow:var(--sombra);}
-  .actividad-zona-inner{display:flex;gap:16px;align-items:flex-start;}
-  .actividad-controles{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;justify-content:flex-start;}
-  .actividad-controles .grid-toolbar{margin-bottom:0;flex-wrap:wrap;}
-  #cal-actividad-panel{flex-shrink:0;width:420px;}
+  .actividad-zona .grid-toolbar{margin-bottom:8px;}
+  /* cal-wrap: layout 2 columnas DENTRO del panel, sin recuadro propio */
+  .cal-wrap{display:flex;gap:16px;align-items:flex-start;padding-top:4px;border-top:1px solid var(--borde);}
+  [data-theme="dark"] .cal-wrap{border-top-color:var(--borde);}
   .cal-user-select{font-size:11px;border:1px solid var(--borde);border-radius:10px;padding:2px 7px;background:var(--card-bg);color:var(--texto);cursor:pointer;outline:none;max-width:110px;}
   /* Calendario compacto: layout horizontal */
   .cal-wrap{display:flex;gap:12px;align-items:flex-start;}
@@ -527,21 +527,15 @@
     <!-- Toolbar: filtros cliente + sort + calendario actividad -->
     <div class="cli-filter-wrap" id="cli-filter-wrap"></div>
     <div class="actividad-zona">
-      <div class="actividad-zona-inner">
-        <!-- Izquierda: controles de orden y vista -->
-        <div class="actividad-controles">
-          <div class="grid-toolbar">
-            <span class="flabel" style="font-size:11px;">Ordenar:</span>
-            <button class="sort-chip on" onclick="setSortMode('estado',this)">Estado</button>
-            <button class="sort-chip" onclick="setSortMode('pct_desc',this)">% Mayor</button>
-            <button class="sort-chip" onclick="setSortMode('pct_asc',this)">% Menor</button>
-            <button class="sort-chip" onclick="setSortMode('nombre',this)">A–Z</button>
-          </div>
-          <button class="vista-toggle" id="btn-vista-compacta" onclick="toggleVistaCompacta()">☰ Compacto</button>
-        </div>
-        <!-- Derecha: calendario de actividad -->
-        <div id="cal-actividad-panel"></div>
+      <div class="grid-toolbar">
+        <span class="flabel" style="font-size:11px;">Ordenar:</span>
+        <button class="sort-chip on" onclick="setSortMode('estado',this)">Estado</button>
+        <button class="sort-chip" onclick="setSortMode('pct_desc',this)">% Mayor</button>
+        <button class="sort-chip" onclick="setSortMode('pct_asc',this)">% Menor</button>
+        <button class="sort-chip" onclick="setSortMode('nombre',this)">A–Z</button>
+        <button class="vista-toggle" id="btn-vista-compacta" onclick="toggleVistaCompacta()">☰ Compacto</button>
       </div>
+      <div id="cal-actividad-panel"></div>
     </div>
     <div id="urgentes-panel"></div>
     <div id="peticiones-panel"></div>

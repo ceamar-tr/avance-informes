@@ -1312,7 +1312,7 @@ function render(){
       var safeProy=p.proyecto.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
       return '<span class="secc-tag '+(s.completado?'secc-ok':'secc-pend')+'" '
         +'title="'+(s.completado?'Marcar pendiente':'Marcar completo')+'" '
-        +'onclick="event.stopPropagation();toggleSeccion(\''+safeProy+'\',\''+safeS+'\')" '
+        +'onclick="event.stopPropagation();toggleSeccion(event,\''+safeProy+'\',\''+safeS+'\')" '
         +'style="cursor:pointer;">'+(s.completado?'✓ ':'')+s.seccion+'</span>';
     }).join('');
     var avatares=p.resp.slice(0,4).map(function(r){
@@ -1587,7 +1587,7 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 
 // ─── TOGGLE RÁPIDO SECCIÓN DESDE TARJETA ────────────────
-function toggleSeccion(proyecto, seccion){
+function toggleSeccion(_evToggle, proyecto, seccion){
   var idx = ALL.findIndex(function(r){
     return r.proyecto===proyecto && r.seccion===seccion && r.mes===mesSel && r.source===anioSel;
   });
@@ -1603,6 +1603,14 @@ function toggleSeccion(proyecto, seccion){
   logActividad(actor+' '+accion+' "'+secShort+'" de '+proyShort, 'cambio');
 
   render(); // render inmediato para feedback visual
+
+  // Picker responsable al completar
+  if(nuevoVal === true){
+    var _anchor = (_evToggle && _evToggle.target) ? _evToggle.target : null;
+    if(_anchor) pickResponsableParaCompletar(_anchor, function(resp){
+      if(resp) saveField(anioSel, mesSel, proyecto, seccion, 'responsable', resp);
+    });
+  }
 
   // Sincronizar con Google Sheets en background
   var ssId = anioSel==='2026'?S26:S25;
@@ -2194,6 +2202,41 @@ function editarCampo(el){
 }
 
 // ─── TOGGLE COMPLETADO ───────────────────────────────────
+var TEAM_PRINCIPAL = ['Tamara','Nathalie','Abigail','Rocío','Don Marcelo','Alonso','Edward','Luis'];
+function pickResponsableParaCompletar(anchorEl, onSelect){
+  var old = document.getElementById('resp-picker-comp');
+  if(old) old.remove();
+  var pk = document.createElement('div');
+  pk.id = 'resp-picker-comp';
+  pk.style.cssText = 'position:fixed;z-index:9999;background:var(--bg,white);border:1px solid var(--borde,#ddd);border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.18);padding:6px 0;min-width:170px;font-family:inherit;';
+  var rect = anchorEl ? anchorEl.getBoundingClientRect() : {left:200,bottom:200};
+  pk.style.left = Math.min(rect.left, window.innerWidth-190) + 'px';
+  pk.style.top = (rect.bottom + 4) + 'px';
+  var lbl = document.createElement('div');
+  lbl.textContent = '¿Quién completó esto?';
+  lbl.style.cssText = 'padding:6px 14px 4px;font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.4px;';
+  pk.appendChild(lbl);
+  var skip = document.createElement('div');
+  skip.textContent = '— Sin cambio —';
+  skip.style.cssText = 'padding:7px 14px;cursor:pointer;font-size:12px;color:#aaa;border-bottom:1px solid #eee;';
+  skip.onmouseenter = function(){this.style.background='#f5f5f5';};
+  skip.onmouseleave = function(){this.style.background='';};
+  skip.onclick = function(e){e.stopPropagation();pk.remove();document.removeEventListener('click',_closeP);onSelect(null);};
+  pk.appendChild(skip);
+  TEAM_PRINCIPAL.forEach(function(name){
+    var it = document.createElement('div');
+    it.textContent = name;
+    it.style.cssText = 'padding:8px 14px;cursor:pointer;font-size:13px;';
+    it.onmouseenter = function(){this.style.background='#e3f2fd';};
+    it.onmouseleave = function(){this.style.background='';};
+    it.onclick = function(e){e.stopPropagation();pk.remove();document.removeEventListener('click',_closeP);onSelect(name);};
+    pk.appendChild(it);
+  });
+  document.body.appendChild(pk);
+  function _closeP(e){if(!pk.contains(e.target)){pk.remove();document.removeEventListener('click',_closeP);onSelect(null);}}
+  setTimeout(function(){document.addEventListener('click',_closeP);},120);
+}
+
 function toggleCompletadoSecc(btn){
   var row = btn.closest('[data-seccion]');
   if(!row) return;
@@ -2207,7 +2250,14 @@ function toggleCompletadoSecc(btn){
   btn.textContent = nuevo ? '✓' : '○';
   btn.style.color = nuevo ? 'var(--verde)' : 'var(--suave)';
   row.style.background = nuevo ? 'var(--verde-s)' : '';
-  saveField(source, mes, proyecto, seccion, 'completado', nuevo);
+  if(nuevo === true){
+    pickResponsableParaCompletar(btn, function(resp){
+      saveField(source, mes, proyecto, seccion, 'completado', nuevo);
+      if(resp) saveField(source, mes, proyecto, seccion, 'responsable', resp);
+    });
+  } else {
+    saveField(source, mes, proyecto, seccion, 'completado', nuevo);
+  }
 }
 
 // ─── LOGOS DE CLIENTE ────────────────────────────────────

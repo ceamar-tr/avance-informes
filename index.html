@@ -447,6 +447,32 @@
   [data-theme="dark"] .secc-edit-field:hover{background:var(--azul-s);}
   [data-theme="dark"] .secc-edit-input{background:var(--card-bg);color:var(--texto);}
   [data-theme="dark"] .save-toast{background:#1a2333;}
+  /* ── Nuevo Proyecto ── */
+  .btn-nuevo-proy{background:var(--verde);color:white;border:none;border-radius:20px;padding:6px 16px 6px 12px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px;margin-left:10px;font-family:'DM Sans',sans-serif;transition:opacity .2s;vertical-align:middle;}
+  .btn-nuevo-proy:hover{opacity:.85;}
+  .np-overlay{position:fixed;inset:0;background:rgba(0,0,0,.48);z-index:8000;display:flex;align-items:center;justify-content:center;}
+  .np-modal{background:var(--card-bg,white);border-radius:16px;box-shadow:0 16px 48px rgba(0,0,0,.25);width:520px;max-width:95vw;max-height:90vh;overflow-y:auto;font-family:'DM Sans',sans-serif;}
+  .np-header{background:linear-gradient(135deg,#1b5e20,#2e7d32);color:white;padding:18px 22px 14px;border-radius:16px 16px 0 0;}
+  .np-header h3{margin:0;font-size:17px;font-weight:700;}
+  .np-header p{margin:4px 0 0;font-size:12px;opacity:.8;}
+  .np-body{padding:18px 22px;}
+  .np-field{margin-bottom:14px;}
+  .np-field label{display:block;font-size:11px;font-weight:700;color:var(--suave,#666);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;}
+  .np-field input,.np-field select{width:100%;padding:8px 12px;border:1.5px solid var(--borde,#ddd);border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--bg,white);color:var(--texto,#222);box-sizing:border-box;outline:none;}
+  .np-field input:focus,.np-field select:focus{border-color:var(--verde);}
+  .np-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .np-secc-list{display:flex;flex-direction:column;gap:6px;margin-bottom:8px;}
+  .np-secc-row{display:flex;gap:6px;align-items:center;}
+  .np-secc-row input{flex:1;padding:7px 10px;border:1.5px solid var(--borde,#ddd);border-radius:7px;font-size:12px;font-family:'DM Sans',sans-serif;background:var(--bg,white);color:var(--texto,#222);}
+  .np-secc-row select{width:130px;padding:7px 8px;border:1.5px solid var(--borde,#ddd);border-radius:7px;font-size:12px;font-family:'DM Sans',sans-serif;background:var(--bg,white);color:var(--texto,#222);}
+  .np-secc-row button.np-rm{background:none;border:none;cursor:pointer;font-size:15px;color:#bbb;padding:0 4px;line-height:1;}
+  .np-secc-row button.np-rm:hover{color:#e53935;}
+  .np-add-secc{background:none;border:1.5px dashed var(--borde,#ccc);border-radius:7px;width:100%;padding:7px;font-size:12px;color:var(--suave,#888);cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:2px;}
+  .np-add-secc:hover{border-color:var(--verde);color:var(--verde);}
+  .np-footer{display:flex;justify-content:flex-end;gap:10px;padding:12px 22px 18px;border-top:1px solid var(--borde,#eee);}
+  .np-cancel{background:none;border:1.5px solid var(--borde,#ddd);border-radius:8px;padding:8px 18px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--texto,#333);}
+  .np-submit{background:var(--verde);color:white;border:none;border-radius:8px;padding:8px 22px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;}
+  .np-submit:disabled{opacity:.5;cursor:not-allowed;}
 </style>
 </head>
 <body>
@@ -506,6 +532,7 @@
         <div class="mes-grid" id="mes-grid-25"></div>
       </div>
     </div>
+    <button class="btn-nuevo-proy" onclick="abrirNuevoProyecto()">＋ Nuevo proyecto</button>
     <!-- Layout 2 columnas: filtros izquierda | calendario derecha -->
     <div class="filtros-cal-layout">
 
@@ -2879,6 +2906,128 @@ function exportarCSV(){
 actualizarDias();
 buildRespChips();
 cargar();
+</script>
+
+<!-- Modal Nuevo Proyecto -->
+<div id="np-overlay" class="np-overlay" style="display:none" onclick="if(event.target===this)cerrarNuevoProyecto()">
+  <div class="np-modal">
+    <div class="np-header">
+      <h3>＋ Nuevo proyecto</h3>
+      <p id="np-subtitle">Agregando al mes actual</p>
+    </div>
+    <div class="np-body">
+      <div class="np-field">
+        <label>Nombre del proyecto / cliente</label>
+        <input id="np-nombre" type="text" placeholder="Ej: Santo Domingo LB">
+      </div>
+      <div class="np-row2">
+        <div class="np-field">
+          <label>Estación / período</label>
+          <input id="np-estacion" type="text" placeholder="Ej: Ver 26">
+        </div>
+        <div class="np-field">
+          <label>Campaña</label>
+          <select id="np-campana">
+            <option value="Verano">Verano</option>
+            <option value="Invierno">Invierno</option>
+            <option value="Primavera">Primavera</option>
+            <option value="Otoño">Otoño</option>
+          </select>
+        </div>
+      </div>
+      <div class="np-field">
+        <label>Secciones <span style="font-size:10px;font-weight:400;color:#aaa">(nombre + responsable opcional)</span></label>
+        <div class="np-secc-list" id="np-secc-list"></div>
+        <button class="np-add-secc" onclick="npAgregarSecc()">+ Agregar sección</button>
+      </div>
+    </div>
+    <div class="np-footer">
+      <button class="np-cancel" onclick="cerrarNuevoProyecto()">Cancelar</button>
+      <button class="np-submit" id="np-submit" onclick="npGuardar()">Guardar en Drive</button>
+    </div>
+  </div>
+</div>
+<script>
+var _npIdx = 0;
+function abrirNuevoProyecto(){
+  document.getElementById('np-nombre').value = '';
+  document.getElementById('np-estacion').value = '';
+  document.getElementById('np-campana').value = 'Verano';
+  document.getElementById('np-subtitle').textContent = 'Agregando a ' + mesSel + ' ' + anioSel;
+  var list = document.getElementById('np-secc-list');
+  list.innerHTML = '';
+  _npIdx = 0;
+  npAgregarSecc();
+  document.getElementById('np-submit').disabled = false;
+  document.getElementById('np-submit').textContent = 'Guardar en Drive';
+  document.getElementById('np-overlay').style.display = 'flex';
+  setTimeout(function(){ document.getElementById('np-nombre').focus(); }, 80);
+}
+function cerrarNuevoProyecto(){
+  document.getElementById('np-overlay').style.display = 'none';
+}
+function npAgregarSecc(){
+  var list = document.getElementById('np-secc-list');
+  var idx = _npIdx++;
+  var row = document.createElement('div');
+  row.className = 'np-secc-row';
+  row.id = 'np-secc-row-' + idx;
+  var inp = document.createElement('input');
+  inp.type = 'text';
+  inp.placeholder = 'Ej: Fito, Zoo, Química agua...';
+  inp.id = 'np-snombre-' + idx;
+  var sel = document.createElement('select');
+  sel.id = 'np-sresp-' + idx;
+  var opts = [['', '— Sin asignar —']].concat(TEAM_PRINCIPAL.map(function(n){return [n,n];}));
+  opts.forEach(function(pair){
+    var o = document.createElement('option');
+    o.value = pair[0]; o.textContent = pair[1]; sel.appendChild(o);
+  });
+  var btn2 = document.createElement('button');
+  btn2.textContent = '✕'; btn2.className = 'np-rm'; btn2.title = 'Eliminar';
+  btn2.onclick = function(){ row.remove(); };
+  row.appendChild(inp); row.appendChild(sel); row.appendChild(btn2);
+  list.appendChild(row);
+  inp.focus();
+}
+function npGuardar(){
+  var nombre = document.getElementById('np-nombre').value.trim();
+  var estacion = document.getElementById('np-estacion').value.trim();
+  var campana = document.getElementById('np-campana').value;
+  if(!nombre){ alert('Ingresa el nombre del proyecto'); return; }
+  var secciones = [];
+  document.getElementById('np-secc-list').querySelectorAll('.np-secc-row').forEach(function(row){
+    var idx = row.id.replace('np-secc-row-','');
+    var ni = document.getElementById('np-snombre-'+idx);
+    var ri = document.getElementById('np-sresp-'+idx);
+    if(ni && ni.value.trim()) secciones.push({nombre: ni.value.trim(), responsable: ri ? ri.value : ''});
+  });
+  if(!secciones.length){ alert('Agrega al menos una sección'); return; }
+  var btn3 = document.getElementById('np-submit');
+  btn3.disabled = true; btn3.textContent = 'Guardando...';
+  var ssId = String(anioSel) === '2026' ? S26 : S25;
+  var scriptUrl = String(anioSel) === '2026' ? APPS_SCRIPT_URL_2026 : APPS_SCRIPT_URL_2025;
+  fetch(scriptUrl, {
+    method: 'POST',
+    headers: {'Content-Type': 'text/plain'},
+    body: JSON.stringify({action:'addProyecto', ssId:ssId, sheetName:mesSel, proyecto:nombre, estacion:estacion, campana:campana, anio:parseInt(anioSel), secciones:secciones})
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if(d.success){
+      cerrarNuevoProyecto();
+      try{ localStorage.removeItem('ceamar3_'+anioSel+'_'+mesSel); }catch(e){}
+      cargar();
+    } else {
+      alert('Error: ' + (d.error || 'No se pudo guardar'));
+      btn3.disabled = false; btn3.textContent = 'Guardar en Drive';
+    }
+  })
+  .catch(function(e){
+    alert('Error de red: '+e.message);
+    btn3.disabled = false; btn3.textContent = 'Guardar en Drive';
+  });
+}
 </script>
 </body>
 </html>

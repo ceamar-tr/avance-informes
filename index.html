@@ -2203,40 +2203,91 @@ function editarCampo(el){
 
 // ─── TOGGLE COMPLETADO ───────────────────────────────────
 var TEAM_PRINCIPAL = ['Tamara','Nathalie','Abigail','Rocío','Don Marcelo','Alonso','Edward','Luis'];
+var TEAM_COLORS = {
+  'Tamara':     {bg:'#1565c0',lt:'#e3f2fd'},
+  'Nathalie':   {bg:'#1a5c2e',lt:'#e8f5e9'},
+  'Abigail':    {bg:'#e65100',lt:'#fff3e0'},
+  'Rocío':      {bg:'#c62828',lt:'#fce4ec'},
+  'Don Marcelo':{bg:'#283593',lt:'#e8eaf6'},
+  'Alonso':     {bg:'#00695c',lt:'#e0f2f1'},
+  'Edward':     {bg:'#6a1b9a',lt:'#f3e5f5'},
+  'Luis':       {bg:'#f57f17',lt:'#fff8e1'}
+};
 function pickResponsableParaCompletar(anchorEl, onSelect){
   var old = document.getElementById('resp-picker-comp');
   if(old) old.remove();
+  // Inject animation style once
+  if(!document.getElementById('resp-picker-style')){
+    var st = document.createElement('style');
+    st.id = 'resp-picker-style';
+    st.textContent = '@keyframes respPickerIn{from{opacity:0;transform:scale(.92) translateY(-6px)}to{opacity:1;transform:scale(1) translateY(0)}}' +
+      '#resp-picker-comp{animation:respPickerIn .18s cubic-bezier(.34,1.56,.64,1) both;}' +
+      '#resp-picker-comp .rp-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;margin:0 auto 5px;letter-spacing:.5px;}' +
+      '#resp-picker-comp .rp-btn{border:none;background:transparent;cursor:pointer;padding:10px 6px 8px;border-radius:10px;transition:background .13s,transform .1s;font-size:12px;font-weight:500;text-align:center;width:100%;}' +
+      '#resp-picker-comp .rp-btn:hover{transform:scale(1.07);}';
+    document.head.appendChild(st);
+  }
   var pk = document.createElement('div');
   pk.id = 'resp-picker-comp';
-  pk.style.cssText = 'position:fixed;z-index:9999;background:var(--bg,white);border:1px solid var(--borde,#ddd);border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.18);padding:6px 0;min-width:170px;font-family:inherit;';
+  pk.style.cssText = 'position:fixed;z-index:9999;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,.22),0 2px 8px rgba(0,0,0,.12);overflow:hidden;width:280px;font-family:inherit;';
   var rect = anchorEl ? anchorEl.getBoundingClientRect() : {left:200,bottom:200};
-  pk.style.left = Math.min(rect.left, window.innerWidth-190) + 'px';
-  pk.style.top = (rect.bottom + 4) + 'px';
-  var lbl = document.createElement('div');
-  lbl.textContent = '¿Quién completó esto?';
-  lbl.style.cssText = 'padding:6px 14px 4px;font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.4px;';
-  pk.appendChild(lbl);
-  var skip = document.createElement('div');
-  skip.textContent = '— Sin cambio —';
-  skip.style.cssText = 'padding:7px 14px;cursor:pointer;font-size:12px;color:#aaa;border-bottom:1px solid #eee;';
-  skip.onmouseenter = function(){this.style.background='#f5f5f5';};
-  skip.onmouseleave = function(){this.style.background='';};
-  skip.onclick = function(e){e.stopPropagation();pk.remove();document.removeEventListener('click',_closeP);onSelect(null);};
-  pk.appendChild(skip);
+  var left = Math.min(rect.left, window.innerWidth - 300);
+  var top = rect.bottom + 6;
+  if(top + 280 > window.innerHeight) top = rect.top - 280;
+  pk.style.left = left + 'px';
+  pk.style.top = top + 'px';
+  // Header
+  var hdr = document.createElement('div');
+  hdr.style.cssText = 'background:linear-gradient(135deg,#1565c0 0%,#0d47a1 100%);padding:14px 18px 12px;color:white;';
+  var hdrTop = document.createElement('div');
+  hdrTop.style.cssText = 'font-size:10px;font-weight:700;letter-spacing:1.2px;opacity:.8;text-transform:uppercase;margin-bottom:3px;';
+  hdrTop.textContent = 'Al marcar como completado';
+  var hdrTitle = document.createElement('div');
+  hdrTitle.style.cssText = 'font-size:15px;font-weight:700;';
+  hdrTitle.textContent = '¿Quién completó esta sección?';
+  hdr.appendChild(hdrTop);
+  hdr.appendChild(hdrTitle);
+  pk.appendChild(hdr);
+  // Grid
+  var grid = document.createElement('div');
+  grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:10px;background:var(--bg,#fff);';
   TEAM_PRINCIPAL.forEach(function(name){
-    var it = document.createElement('div');
-    it.textContent = name;
-    it.style.cssText = 'padding:8px 14px;cursor:pointer;font-size:13px;';
-    it.onmouseenter = function(){this.style.background='#e3f2fd';};
-    it.onmouseleave = function(){this.style.background='';};
-    it.onclick = function(e){e.stopPropagation();pk.remove();document.removeEventListener('click',_closeP);onSelect(name);};
-    pk.appendChild(it);
+    var colors = TEAM_COLORS[name] || {bg:'#555',lt:'#eee'};
+    var initials = name.split(' ').map(function(w){return w[0];}).join('').substring(0,2).toUpperCase();
+    var btn = document.createElement('button');
+    btn.className = 'rp-btn';
+    var av = document.createElement('div');
+    av.className = 'rp-avatar';
+    av.style.background = colors.bg;
+    av.style.color = 'white';
+    av.textContent = initials;
+    var lbl = document.createElement('div');
+    lbl.textContent = name;
+    lbl.style.color = 'var(--texto,#222)';
+    btn.appendChild(av);
+    btn.appendChild(lbl);
+    btn.onmouseenter = function(){this.style.background = colors.lt;};
+    btn.onmouseleave = function(){this.style.background = '';};
+    btn.onclick = function(e){e.stopPropagation();pk.remove();document.removeEventListener('click',_closeP);onSelect(name);};
+    grid.appendChild(btn);
   });
+  pk.appendChild(grid);
+  // Footer skip
+  var footer = document.createElement('div');
+  footer.style.cssText = 'border-top:1px solid var(--borde,#eee);padding:8px 14px;text-align:center;background:var(--bg,#fff);';
+  var skip = document.createElement('a');
+  skip.href = '#';
+  skip.textContent = '— Continuar sin asignar responsable —';
+  skip.style.cssText = 'font-size:11px;color:#aaa;text-decoration:none;';
+  skip.onmouseenter = function(){this.style.color='#666';};
+  skip.onmouseleave = function(){this.style.color='#aaa';};
+  skip.onclick = function(e){e.preventDefault();e.stopPropagation();pk.remove();document.removeEventListener('click',_closeP);onSelect(null);};
+  footer.appendChild(skip);
+  pk.appendChild(footer);
   document.body.appendChild(pk);
   function _closeP(e){if(!pk.contains(e.target)){pk.remove();document.removeEventListener('click',_closeP);onSelect(null);}}
   setTimeout(function(){document.addEventListener('click',_closeP);},120);
 }
-
 function toggleCompletadoSecc(btn){
   var row = btn.closest('[data-seccion]');
   if(!row) return;

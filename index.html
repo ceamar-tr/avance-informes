@@ -1284,8 +1284,8 @@ function render(){
           '<div class="proy-prog-pct">'+p.pct+'%</div>'+
         '</div>'+
         '<div class="proy-secciones">'+seccTags+'</div>'+
-        +buildCorreccionHTML(p.proyecto, p.mes, p.source, p.done)
-        +'<div class="proy-footer"><div class="proy-avatares">'+avatares+'</div>'+estadoPill+(pendCount>0&&!p.done?'<span class="pend-badge">'+pendCount+' pend.</span>':'')+
+        buildCorreccionHTML(p.proyecto, p.mes, p.source, p.done)+
+        '<div class="proy-footer"><div class="proy-avatares">'+avatares+'</div>'+estadoPill+(pendCount>0&&!p.done?'<span class="pend-badge">'+pendCount+' pend.</span>':'')+
         '<button style="background:none;border:none;cursor:pointer;font-size:10px;color:var(--suave);padding:2px 6px;border-radius:6px;transition:color .2s;" '+
           'onmouseover="this.style.color=\'var(--azul-c)\'" onmouseout="this.style.color=\'var(--suave)\'" '+
           'onclick="event.stopPropagation();verHistorial(\''+safeNombre+'\')" title="Ver historial">📋 Historial</button>'+

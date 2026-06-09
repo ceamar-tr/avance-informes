@@ -914,8 +914,8 @@ var MESES_ORD  = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agos
 var CACHE_TTL  = 15 * 60 * 1000; // 15 minutos
 
 // Solo estos 4 aparecen en la pestaña Equipo (Rocío normalizado a Rocio)
-var RESP_EQUIPO = ['Tamara','Nathalie','Abigail','Rocio'];
-var EQ_COLORS   = ['eq-v','eq-a','eq-am','eq-r'];
+var RESP_EQUIPO = ['Tamara','Nathalie','Abigail','Rocio','Edward','Luis','Marcelo','Alonso'];
+var EQ_COLORS   = ['eq-v','eq-a','eq-am','eq-r','eq-v','eq-a','eq-am','eq-r'];
 
 var COLS = [{bg:'#e3f2fd',fg:'#1565c0'},{bg:'#e8f5e9',fg:'#1a5c2e'},{bg:'#fff3e0',fg:'#e65100'},
             {bg:'#fce4ec',fg:'#c62828'},{bg:'#e8eaf6',fg:'#283593'},{bg:'#e0f2f1',fg:'#00695c'},
@@ -1501,7 +1501,7 @@ function render(){
       var estTitle = 'Estado: '+getEstadoLabel(est)+' · Clic para avanzar';
       return '<span class="secc-tag '+tagCls+'" '
         +'title="'+estTitle+'" '
-        +'onclick="event.stopPropagation();ciclarEstado(\''+safeProy+'\',\''+safeS+'\')" '
+        +'onclick="event.stopPropagation();ciclarEstado(event,\''+safeProy+'\',\''+safeS+'\')" '
         +'style="cursor:pointer;'+(est==='asignada'?'border:1px solid var(--azul-c);':est==='en_proceso'?'border:1px solid var(--amber);':'')+'">'
         +estIcon+' '+s.seccion+'</span>';
     }).join('');
@@ -1851,7 +1851,7 @@ document.addEventListener('DOMContentLoaded', function(){
 // ─── CICLAR ESTADO RÁPIDO DESDE TARJETA ─────────────────
 // Feature 2: clic en sección → avanza al siguiente estado en el ciclo
 var CICLO_ESTADOS = ['pendiente','asignada','en_proceso','completada'];
-function ciclarEstado(proyecto, seccion){
+function ciclarEstado(ev, proyecto, seccion){
   var r = null;
   for(var i=0; i<ALL.length; i++){
     if(ALL[i].proyecto===proyecto && ALL[i].seccion===seccion && ALL[i].mes===mesSel && ALL[i].source===anioSel){
@@ -1863,6 +1863,93 @@ function ciclarEstado(proyecto, seccion){
   var idx = CICLO_ESTADOS.indexOf(estadoActual);
   var nuevoEstado = CICLO_ESTADOS[(idx+1) % CICLO_ESTADOS.length];
   setEstado(anioSel, mesSel, proyecto, seccion, nuevoEstado);
+
+  // Cuando pasa a "asignada" y no tiene responsable, mostrar picker flotante
+  if(nuevoEstado === 'asignada' && (!r.responsable || !r.responsable.trim())){
+    var chip = ev ? ev.target : null;
+    if(chip) mostrarPickerResponsable(chip, anioSel, mesSel, proyecto, seccion);
+  }
+}
+
+function mostrarPickerResponsable(ancla, source, mes, proyecto, seccion){
+  // Eliminar picker anterior si existe
+  var prev = document.getElementById('resp-picker-float');
+  if(prev) prev.remove();
+
+  // Overlay semitransparente
+  var overlay = document.createElement('div');
+  overlay.id = 'resp-picker-float';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;animation:fadeInPicker .15s ease;';
+
+  var card = document.createElement('div');
+  card.style.cssText = 'background:var(--card-bg);border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,.28);padding:20px 22px 18px;min-width:300px;max-width:340px;';
+
+  // Título
+  var titulo = document.createElement('div');
+  titulo.style.cssText = 'font-size:13px;font-weight:800;color:var(--texto);margin-bottom:4px;';
+  titulo.textContent = '¿Quién se encarga?';
+  var sub = document.createElement('div');
+  sub.style.cssText = 'font-size:11px;color:var(--suave);margin-bottom:14px;';
+  sub.textContent = seccion + ' · ' + proyecto;
+  card.appendChild(titulo);
+  card.appendChild(sub);
+
+  // Grilla 2 columnas
+  var grid = document.createElement('div');
+  grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:8px;';
+
+  RESP_EQUIPO.forEach(function(n){
+    var c = gc(n);
+    var btn = document.createElement('button');
+    btn.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:2px solid var(--borde);background:var(--fondo);cursor:pointer;font-size:13px;font-weight:600;color:var(--texto);transition:all .12s;';
+    btn.onmouseover = function(){ btn.style.borderColor=c.fg; btn.style.background=c.bg; };
+    btn.onmouseout  = function(){ btn.style.borderColor='var(--borde)'; btn.style.background='var(--fondo)'; };
+
+    var av = document.createElement('span');
+    av.style.cssText = 'width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;background:'+c.bg+';color:'+c.fg+';';
+    av.textContent = ini(n);
+
+    btn.appendChild(av);
+    btn.appendChild(document.createTextNode(n));
+
+    btn.onclick = function(e){
+      e.stopPropagation();
+      overlay.remove();
+      saveField(source, mes, proyecto, seccion, 'responsable', n);
+      for(var i=0;i<ALL.length;i++){
+        if(ALL[i].proyecto===proyecto && ALL[i].seccion===seccion && ALL[i].mes===mes && ALL[i].source===source){
+          ALL[i].responsable = n; break;
+        }
+      }
+      cargar();
+    };
+    grid.appendChild(btn);
+  });
+
+  card.appendChild(grid);
+
+  // Botón cancelar
+  var cancel = document.createElement('button');
+  cancel.style.cssText = 'margin-top:12px;width:100%;padding:8px;border:none;background:transparent;color:var(--suave);font-size:12px;cursor:pointer;border-radius:8px;';
+  cancel.textContent = 'Cancelar';
+  cancel.onmouseover = function(){ cancel.style.background='var(--gris)'; };
+  cancel.onmouseout  = function(){ cancel.style.background='transparent'; };
+  cancel.onclick = function(e){ e.stopPropagation(); overlay.remove(); };
+  card.appendChild(cancel);
+
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+
+  // Cerrar al hacer clic en el overlay (fuera de la card)
+  overlay.onclick = function(e){ if(e.target===overlay) overlay.remove(); };
+
+  // Animación CSS
+  if(!document.getElementById('picker-anim-style')){
+    var st = document.createElement('style');
+    st.id = 'picker-anim-style';
+    st.textContent = '@keyframes fadeInPicker{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}';
+    document.head.appendChild(st);
+  }
 }
 
 // Mantener compatibilidad con toggleSeccion usado en código existente

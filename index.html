@@ -1853,8 +1853,10 @@ document.addEventListener('DOMContentLoaded', function(){
 var CICLO_ESTADOS = ['pendiente','asignada','en_proceso','completada'];
 function ciclarEstado(ev, proyecto, seccion){
   var r = null;
+  // Busca por proyecto+seccion sin requerir mesSel, para que funcione aunque
+  // el proyecto pertenezca a un mes distinto al actualmente seleccionado
   for(var i=0; i<ALL.length; i++){
-    if(ALL[i].proyecto===proyecto && ALL[i].seccion===seccion && ALL[i].mes===mesSel && ALL[i].source===anioSel){
+    if(ALL[i].proyecto===proyecto && ALL[i].seccion===seccion && ALL[i].source===anioSel){
       r = ALL[i]; break;
     }
   }
@@ -1862,12 +1864,13 @@ function ciclarEstado(ev, proyecto, seccion){
   var estadoActual = getEstado(r);
   var idx = CICLO_ESTADOS.indexOf(estadoActual);
   var nuevoEstado = CICLO_ESTADOS[(idx+1) % CICLO_ESTADOS.length];
-  setEstado(anioSel, mesSel, proyecto, seccion, nuevoEstado);
+  // Usar r.source y r.mes para que la clave localStorage sea consistente con getEstado
+  setEstado(r.source, r.mes, proyecto, seccion, nuevoEstado);
 
   // Cuando pasa a "asignada" y no tiene responsable, mostrar picker flotante
   if(nuevoEstado === 'asignada' && (!r.responsable || !r.responsable.trim())){
     var chip = ev ? ev.target : null;
-    if(chip) mostrarPickerResponsable(chip, anioSel, mesSel, proyecto, seccion);
+    if(chip) mostrarPickerResponsable(chip, r.source, r.mes, proyecto, seccion);
   }
 }
 

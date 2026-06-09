@@ -1869,8 +1869,8 @@ function ciclarEstado(ev, proyecto, seccion){
   // Usar r.source y r.mes para que la clave localStorage sea consistente con getEstado
   setEstado(r.source, r.mes, proyecto, seccion, nuevoEstado);
 
-  // Cuando pasa a "asignada" y no tiene responsable, mostrar picker flotante
-  if(nuevoEstado === 'asignada' && (!r.responsable || !r.responsable.trim())){
+  // Cuando pasa a "asignada", siempre mostrar picker (permite asignar o cambiar responsable)
+  if(nuevoEstado === 'asignada'){
     var chip = ev ? ev.target : null;
     if(chip) mostrarPickerResponsable(chip, r.source, r.mes, proyecto, seccion);
   }
@@ -1927,6 +1927,23 @@ function mostrarPickerResponsable(ancla, source, mes, proyecto, seccion){
   });
 
   card.appendChild(grid);
+
+  // Botón quitar asignado (solo si hay responsable actual)
+  var respActual = '';
+  ALL.forEach(function(row){ if(row.proyecto===proyecto && row.seccion===seccion && row.mes===mes && row.source===source) respActual = row.responsable||''; });
+  if(respActual.trim()){
+    var quitarBtn = document.createElement('button');
+    quitarBtn.style.cssText = 'margin-top:8px;width:100%;padding:9px;border:2px solid var(--borde);background:transparent;color:var(--suave);font-size:12px;cursor:pointer;border-radius:10px;';
+    quitarBtn.textContent = '✕ Quitar asignado';
+    quitarBtn.onmouseover = function(){ quitarBtn.style.borderColor='#e55';quitarBtn.style.color='#e55'; };
+    quitarBtn.onmouseout  = function(){ quitarBtn.style.borderColor='var(--borde)';quitarBtn.style.color='var(--suave)'; };
+    quitarBtn.onclick = function(e){
+      e.stopPropagation();
+      overlay.remove();
+      saveField(source, mes, proyecto, seccion, 'responsable', '');
+    };
+    card.appendChild(quitarBtn);
+  }
 
   // Botón cancelar
   var cancel = document.createElement('button');

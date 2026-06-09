@@ -1915,13 +1915,8 @@ function mostrarPickerResponsable(ancla, source, mes, proyecto, seccion){
     btn.onclick = function(e){
       e.stopPropagation();
       overlay.remove();
+      // saveField ya actualiza ALL en memoria y llama render() en su .then()
       saveField(source, mes, proyecto, seccion, 'responsable', n);
-      for(var i=0;i<ALL.length;i++){
-        if(ALL[i].proyecto===proyecto && ALL[i].seccion===seccion && ALL[i].mes===mes && ALL[i].source===source){
-          ALL[i].responsable = n; break;
-        }
-      }
-      cargar();
     };
     grid.appendChild(btn);
   });
@@ -2560,21 +2555,26 @@ function setEstadoPanel(btn, source, mes, proyecto, seccion, nuevoEstado){
         respSpan.replaceWith(sel);
         sel.focus();
 
+        var respGuardado = false;
         function confirmarResp(){
+          if(respGuardado) return;
           var elegido = sel.value.trim();
-          // Restaurar span con el valor elegido (o sin asignar si cancela)
+          if(!elegido) return; // sin selección, no hacer nada
+          respGuardado = true;
+
+          // Restaurar span
           var nuevoSpan = document.createElement('span');
           nuevoSpan.className = 'secc-edit-field';
           nuevoSpan.setAttribute('data-field','responsable');
           nuevoSpan.setAttribute('data-valor', elegido);
           nuevoSpan.setAttribute('onclick','editarCampo(this)');
           nuevoSpan.title = 'Clic para editar responsable';
-          nuevoSpan.textContent = elegido || '—';
-          sel.replaceWith(nuevoSpan);
+          nuevoSpan.textContent = elegido;
+          if(sel.parentNode) sel.replaceWith(nuevoSpan);
 
-          // Actualizar avatar también
+          // Actualizar avatar
           var av = row.querySelector('.av.av-sm');
-          if(av && elegido){
+          if(av){
             var c = gc(elegido);
             av.style.background = c.bg;
             av.style.color = c.fg;
@@ -2582,14 +2582,11 @@ function setEstadoPanel(btn, source, mes, proyecto, seccion, nuevoEstado){
             av.textContent = ini(elegido);
           }
 
-          // Guardar en Drive y memoria si se eligió alguien
-          if(elegido){
-            saveField(source, mes, proyecto, seccion, 'responsable', elegido);
-          }
+          saveField(source, mes, proyecto, seccion, 'responsable', elegido);
         }
 
         sel.addEventListener('change', confirmarResp);
-        sel.addEventListener('blur', function(){ setTimeout(confirmarResp, 150); });
+        sel.addEventListener('blur', function(){ setTimeout(confirmarResp, 100); });
       }
     }
   }

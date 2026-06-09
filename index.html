@@ -1108,7 +1108,7 @@ function cargar(){
     detectarCambiosDrive(); // detectar cambios vs snapshot anterior
     buildSel(); buildProyectoSelect(); render(); renderAlertas(); renderEquipo(); renderSMA(); renderPendientes(); renderAnual();
     renderCalActividad(); // refrescar calendario con datos actualizados
-    renderSugerenciasCard(); // sugerencias de próximas actividades
+    // renderSugerenciasCard(); // sugerencias de próximas actividades (oculto)
     document.getElementById('fhdr').textContent = now2.toLocaleDateString('es-CL',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
     var errTxt = errors.length ? ' · '+errors.length+' hoja'+(errors.length>1?'s':'')+' con error' : '';
@@ -2451,6 +2451,60 @@ function setEstadoPanel(btn, source, mes, proyecto, seccion, nuevoEstado){
     // Actualizar clase del item
     var estCls = getEstadoCls(nuevoEstado);
     row.className = row.className.replace(/\b(ok|pend|asignada|en-proceso)\b/g,'').trim() + ' ' + estCls;
+
+    // Auto-asignar responsable cuando pasa a "asignada"
+    if(nuevoEstado === 'asignada'){
+      var respSpan = row.querySelector('.secc-edit-field[data-field="responsable"]');
+      var respActual = respSpan ? (respSpan.getAttribute('data-valor')||'').trim() : '';
+      if(!respActual && respSpan){
+        // Mostrar selector inline de responsable
+        var sel = document.createElement('select');
+        sel.className = 'secc-edit-input';
+        sel.style.cssText = 'width:auto;min-width:90px;padding:3px 6px;font-size:11px;border-radius:8px;border:2px solid var(--azul-c);background:var(--azul-s);color:var(--azul-c);font-weight:600;cursor:pointer;';
+        var optDefault = document.createElement('option');
+        optDefault.value = '';
+        optDefault.textContent = 'Asignar a…';
+        sel.appendChild(optDefault);
+        RESP_EQUIPO.forEach(function(n){
+          var opt = document.createElement('option');
+          opt.value = n; opt.textContent = n;
+          sel.appendChild(opt);
+        });
+        respSpan.replaceWith(sel);
+        sel.focus();
+
+        function confirmarResp(){
+          var elegido = sel.value.trim();
+          // Restaurar span con el valor elegido (o sin asignar si cancela)
+          var nuevoSpan = document.createElement('span');
+          nuevoSpan.className = 'secc-edit-field';
+          nuevoSpan.setAttribute('data-field','responsable');
+          nuevoSpan.setAttribute('data-valor', elegido);
+          nuevoSpan.setAttribute('onclick','editarCampo(this)');
+          nuevoSpan.title = 'Clic para editar responsable';
+          nuevoSpan.textContent = elegido || '—';
+          sel.replaceWith(nuevoSpan);
+
+          // Actualizar avatar también
+          var av = row.querySelector('.av.av-sm');
+          if(av && elegido){
+            var c = gc(elegido);
+            av.style.background = c.bg;
+            av.style.color = c.fg;
+            av.title = elegido;
+            av.textContent = ini(elegido);
+          }
+
+          // Guardar en Drive y memoria si se eligió alguien
+          if(elegido){
+            saveField(source, mes, proyecto, seccion, 'responsable', elegido);
+          }
+        }
+
+        sel.addEventListener('change', confirmarResp);
+        sel.addEventListener('blur', function(){ setTimeout(confirmarResp, 150); });
+      }
+    }
   }
   setEstado(source, mes, proyecto, seccion, nuevoEstado);
 }

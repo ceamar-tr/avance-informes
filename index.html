@@ -829,7 +829,7 @@ var S26 = '1hIBPoAE-zdTFc8v4ZMx0K9bzGTufOF_4nD8ERu4i7PM';
 
 // URL del Web App de Google Apps Script (pegar después de implementar)
 // Puede ser la misma URL para ambas planillas si usas el mismo script
-var APPS_SCRIPT_URL_2026 = 'https://script.google.com/a/macros/ceamar.cl/s/AKfycbyqLnM5ZQcqcztK6f-7YP4FRW8F0Ilz7kntOyw5BFSD1-YtRn-Gp39u-eqeefirWsgGJg/exec';
+var APPS_SCRIPT_URL_2026 = 'https://script.google.com/macros/s/AKfycbzTUElhO7ULQ-OQsfs4eOHcEyUqljP1QxlDjyDT0Lg8lJ6U7g7vSsdaraeN3t1T8SqjrA/exec';
 var APPS_SCRIPT_URL_2025 = 'https://script.google.com/macros/s/AKfycbxxfAtqXHnG0lixNFYB9hdpmOv_jmw82RiCR07byTPZrILXfXfl56epte9LiAZFj96j7g/exec';
 
 // ─── LOGOS DE CLIENTES ───────────────────────────────────
@@ -913,8 +913,10 @@ var HOJAS_2026 = (function(){
 var MESES_ORD  = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 var CACHE_TTL  = 15 * 60 * 1000; // 15 minutos
 
-// Solo estos 4 aparecen en la pestaña Equipo (Rocío normalizado a Rocio)
+// Todos los posibles responsables (para el picker de asignación)
 var RESP_EQUIPO = ['Tamara','Nathalie','Abigail','Rocio','Edward','Luis','Marcelo','Alonso'];
+// Solo estos 4 aparecen en pestaña Equipo y filtros
+var RESP_CORE   = ['Tamara','Nathalie','Abigail','Rocio'];
 var EQ_COLORS   = ['eq-v','eq-a','eq-am','eq-r','eq-v','eq-a','eq-am','eq-r'];
 
 var COLS = [{bg:'#e3f2fd',fg:'#1565c0'},{bg:'#e8f5e9',fg:'#1a5c2e'},{bg:'#fff3e0',fg:'#e65100'},
@@ -1305,7 +1307,7 @@ function fResp(v, el){
 }
 function buildRespChips(){
   var h = '';
-  RESP_EQUIPO.forEach(function(nombre){
+  RESP_CORE.forEach(function(nombre){
     var c = gc(nombre);
     h += '<button class="resp-chip" onclick="fResp(\''+nombre+'\',this)">'+
       '<span class="av-xs" style="background:'+c.bg+';color:'+c.fg+';">'+ini(nombre)+'</span>'+
@@ -2702,12 +2704,12 @@ function renderEquipo(){
   var fd = ALL.filter(function(r){ return r.mes===mesSel && r.source===anioSel; });
 
   var byR = {};
-  RESP_EQUIPO.forEach(function(n){ byR[n]={t:0,pend:0,asig:0,proc:0,comp:0,rows:[]}; });
+  RESP_CORE.forEach(function(n){ byR[n]={t:0,pend:0,asig:0,proc:0,comp:0,rows:[]}; });
 
   fd.forEach(function(r){
     if(!r.responsable) return;
-    if(!matchEquipo(r.responsable)) return;
     var canon = canonEquipo(r.responsable);
+    if(!byR[canon]) return; // ignorar si no está en RESP_CORE
     byR[canon].t++;
     var est = getEstado(r);
     if(est==='completada')   byR[canon].comp++;
@@ -2717,7 +2719,7 @@ function renderEquipo(){
     byR[canon].rows.push(r);
   });
 
-  var cards = RESP_EQUIPO.map(function(nombre, idx){
+  var cards = RESP_CORE.map(function(nombre, idx){
     var v = byR[nombre];
     var c = gc(nombre);
     var colorClass = EQ_COLORS[idx % EQ_COLORS.length];

@@ -2075,12 +2075,12 @@ function mostrarMenuAccion(ev, proyecto, seccion){
   if(estadoActual !== 'completada'){
     actions.appendChild(mkActionBtn('✓','Marcar completado','var(--verde)',function(){
       setEstado(r.source, r.mes, proyecto, seccion, 'completada');
-      render(); renderUrgentes(); renderPendientes();
+      saveField(r.source, r.mes, proyecto, seccion, 'completado', 'true');
     }));
   } else {
     actions.appendChild(mkActionBtn('↩','Reabrir tarea','var(--suave)',function(){
       setEstado(r.source, r.mes, proyecto, seccion, 'pendiente');
-      render(); renderUrgentes(); renderPendientes();
+      saveField(r.source, r.mes, proyecto, seccion, 'completado', 'false');
     }));
   }
 

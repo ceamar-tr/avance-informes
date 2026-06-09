@@ -1940,6 +1940,7 @@ function mostrarPickerResponsable(ancla, source, mes, proyecto, seccion){
     quitarBtn.onclick = function(e){
       e.stopPropagation();
       overlay.remove();
+      setEstado(source, mes, proyecto, seccion, 'pendiente');
       saveField(source, mes, proyecto, seccion, 'responsable', '');
     };
     card.appendChild(quitarBtn);

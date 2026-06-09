@@ -1500,12 +1500,18 @@ function render(){
       var est = getEstado(s);
       var tagCls = est==='completada'?'secc-ok':est==='en_proceso'?'secc-tag':est==='asignada'?'secc-tag':'secc-pend';
       var estIcon = getEstadoIcon(est);
-      var estTitle = 'Estado: '+getEstadoLabel(est)+' · Clic para avanzar';
+      var estTitle = 'Estado: '+getEstadoLabel(est)+' · Clic para acciones rápidas';
+      // Mostrar avatar del responsable en el chip si existe
+      var respTag = '';
+      if(s.responsable && s.responsable.trim()){
+        var _c = gc(s.responsable);
+        respTag = '<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:'+_c.fg+';color:white;font-size:9px;font-weight:900;margin-left:3px;">'+ini(s.responsable)+'</span>';
+      }
       return '<span class="secc-tag '+tagCls+'" '
         +'title="'+estTitle+'" '
-        +'onclick="event.stopPropagation();ciclarEstado(event,\''+safeProy+'\',\''+safeS+'\')" '
-        +'style="cursor:pointer;'+(est==='asignada'?'border:1px solid var(--azul-c);':est==='en_proceso'?'border:1px solid var(--amber);':'')+'">'
-        +estIcon+' '+s.seccion+'</span>';
+        +'onclick="event.stopPropagation();mostrarMenuAccion(event,\''+safeProy+'\',\''+safeS+'\')" '
+        +'style="cursor:pointer;display:inline-flex;align-items:center;gap:2px;'+(est==='asignada'?'border:1px solid var(--azul-c);':est==='en_proceso'?'border:1px solid var(--amber);':'')+'">'
+        +estIcon+' '+s.seccion+respTag+'</span>';
     }).join('');
     var avatares=p.resp.slice(0,4).map(function(r){
       var c=gc(r);return '<span class="av av-sm" style="background:'+c.bg+';color:'+c.fg+';" title="'+r+'">'+ini(r)+'</span>';
@@ -1968,6 +1974,295 @@ function mostrarPickerResponsable(ancla, source, mes, proyecto, seccion){
     st.textContent = '@keyframes fadeInPicker{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}';
     document.head.appendChild(st);
   }
+}
+
+// ─── MENÚ RÁPIDO DE ACCIONES POR SECCIÓN ─────────────────────
+function mostrarMenuAccion(ev, proyecto, seccion){
+  if(ev) ev.stopPropagation();
+  var r = null;
+  for(var i=0;i<ALL.length;i++){
+    if(ALL[i].proyecto===proyecto && ALL[i].seccion===seccion && ALL[i].source===anioSel){
+      r = ALL[i]; break;
+    }
+  }
+  if(!r) return;
+
+  var prev = document.getElementById('accion-menu-float');
+  if(prev) prev.remove();
+
+  var estadoActual = getEstado(r);
+  var tieneResp = r.responsable && r.responsable.trim();
+
+  var ESTADO_INFO = {
+    pendiente:  {icon:'○', label:'Pendiente',   bg:'var(--gris)',    fg:'var(--suave)'},
+    asignada:   {icon:'◎', label:'Asignada',    bg:'var(--azul-s)', fg:'var(--azul-c)'},
+    en_proceso: {icon:'◑', label:'En proceso',  bg:'#fff8e1',       fg:'var(--amber)'},
+    completada: {icon:'●', label:'Completada',  bg:'var(--verde-s)',fg:'var(--verde)'},
+  };
+  var ei = ESTADO_INFO[estadoActual] || ESTADO_INFO.pendiente;
+
+  var overlay = document.createElement('div');
+  overlay.id = 'accion-menu-float';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;animation:fadeInPicker .15s ease;';
+
+  var card = document.createElement('div');
+  card.style.cssText = 'background:var(--card-bg);border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,.28);padding:20px 22px 16px;min-width:300px;max-width:340px;';
+
+  // Header
+  var tit = document.createElement('div');
+  tit.style.cssText = 'font-size:14px;font-weight:800;color:var(--texto);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
+  tit.textContent = seccion;
+  var sub2 = document.createElement('div');
+  sub2.style.cssText = 'font-size:11px;color:var(--suave);margin-bottom:10px;';
+  sub2.textContent = proyecto + ' · ' + r.mes;
+  card.appendChild(tit);
+  card.appendChild(sub2);
+
+  // Badges: estado + responsable
+  var badgeRow = document.createElement('div');
+  badgeRow.style.cssText = 'display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:14px;';
+  var eBadge = document.createElement('span');
+  eBadge.style.cssText = 'display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;background:'+ei.bg+';color:'+ei.fg+';';
+  eBadge.textContent = ei.icon + ' ' + ei.label;
+  badgeRow.appendChild(eBadge);
+  if(tieneResp){
+    var c = gc(r.responsable);
+    var rBadge = document.createElement('span');
+    rBadge.style.cssText = 'display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;background:'+c.bg+';color:'+c.fg+';';
+    var av2 = document.createElement('span');
+    av2.style.cssText = 'width:14px;height:14px;border-radius:50%;background:'+c.fg+';color:var(--card-bg);display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;';
+    av2.textContent = ini(r.responsable);
+    rBadge.appendChild(av2);
+    rBadge.appendChild(document.createTextNode(r.responsable));
+    badgeRow.appendChild(rBadge);
+  }
+  card.appendChild(badgeRow);
+
+  // Divider
+  var div2 = document.createElement('div');
+  div2.style.cssText = 'border-top:1px solid var(--borde);margin-bottom:10px;';
+  card.appendChild(div2);
+
+  // Helper para botones de acción
+  function mkActionBtn(icon, label, color, clickFn){
+    var btn = document.createElement('button');
+    btn.style.cssText = 'display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--borde);background:var(--fondo);cursor:pointer;font-size:13px;font-weight:600;color:'+(color||'var(--texto)')+';text-align:left;transition:background .1s;margin-bottom:6px;';
+    btn.onmouseover = function(){ btn.style.background='var(--gris)'; };
+    btn.onmouseout  = function(){ btn.style.background='var(--fondo)'; };
+    var ico = document.createElement('span');
+    ico.style.cssText = 'width:22px;text-align:center;font-size:15px;flex-shrink:0;';
+    ico.textContent = icon;
+    btn.appendChild(ico);
+    btn.appendChild(document.createTextNode(label));
+    btn.onclick = function(e){ e.stopPropagation(); overlay.remove(); clickFn(); };
+    return btn;
+  }
+
+  var actions = document.createElement('div');
+
+  // Asignar / Editar responsable
+  if(!tieneResp){
+    actions.appendChild(mkActionBtn('👤','Asignar responsable',null,function(){
+      mostrarPickerResponsable(null, r.source, r.mes, proyecto, seccion);
+    }));
+  } else {
+    actions.appendChild(mkActionBtn('✏️','Editar responsable',null,function(){
+      mostrarPickerResponsable(null, r.source, r.mes, proyecto, seccion);
+    }));
+  }
+
+  // Marcar completado / Reabrir
+  if(estadoActual !== 'completada'){
+    actions.appendChild(mkActionBtn('✓','Marcar completado','var(--verde)',function(){
+      setEstado(r.source, r.mes, proyecto, seccion, 'completada');
+      render(); renderUrgentes(); renderPendientes();
+    }));
+  } else {
+    actions.appendChild(mkActionBtn('↩','Reabrir tarea','var(--suave)',function(){
+      setEstado(r.source, r.mes, proyecto, seccion, 'pendiente');
+      render(); renderUrgentes(); renderPendientes();
+    }));
+  }
+
+  // Quitar asignado (solo si hay responsable)
+  if(tieneResp){
+    actions.appendChild(mkActionBtn('✕','Quitar asignado','#e55',function(){
+      setEstado(r.source, r.mes, proyecto, seccion, 'pendiente');
+      saveField(r.source, r.mes, proyecto, seccion, 'responsable', '');
+    }));
+  }
+
+  card.appendChild(actions);
+
+  // Cancelar
+  var cancelBtn = document.createElement('button');
+  cancelBtn.style.cssText = 'margin-top:4px;width:100%;padding:8px;border:none;background:transparent;color:var(--suave);font-size:12px;cursor:pointer;border-radius:8px;';
+  cancelBtn.textContent = 'Cancelar';
+  cancelBtn.onmouseover = function(){ cancelBtn.style.background='var(--gris)'; };
+  cancelBtn.onmouseout  = function(){ cancelBtn.style.background='transparent'; };
+  cancelBtn.onclick = function(e){ e.stopPropagation(); overlay.remove(); };
+  card.appendChild(cancelBtn);
+
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
+}
+
+// ─── MENÚ RÁPIDO PLANILLAS SMA ────────────────────────────────
+function mostrarMenuSMA(ev, proyecto, seccion){
+  if(ev) ev.stopPropagation();
+  var r = null;
+  for(var i=0;i<ALL.length;i++){
+    if(ALL[i].proyecto===proyecto && ALL[i].seccion===seccion && ALL[i].source===anioSel){
+      r = ALL[i]; break;
+    }
+  }
+  if(!r) return;
+
+  var prev = document.getElementById('sma-menu-float');
+  if(prev) prev.remove();
+
+  var tieneResp = r.smaResp && r.smaResp.trim();
+
+  var overlay = document.createElement('div');
+  overlay.id = 'sma-menu-float';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;animation:fadeInPicker .15s ease;';
+
+  var card = document.createElement('div');
+  card.style.cssText = 'background:var(--card-bg);border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,.28);padding:20px 22px 16px;min-width:300px;max-width:340px;';
+
+  var tit = document.createElement('div');
+  tit.style.cssText = 'font-size:14px;font-weight:800;color:var(--texto);margin-bottom:2px;';
+  tit.textContent = seccion;
+  var sub3 = document.createElement('div');
+  sub3.style.cssText = 'font-size:11px;color:var(--suave);margin-bottom:10px;';
+  sub3.textContent = proyecto + ' · Planilla SMA';
+  card.appendChild(tit);
+  card.appendChild(sub3);
+
+  // Badge responsable SMA actual
+  var badgeRow2 = document.createElement('div');
+  badgeRow2.style.cssText = 'margin-bottom:14px;';
+  if(tieneResp){
+    var c2 = gc(r.smaResp);
+    var rB = document.createElement('span');
+    rB.style.cssText = 'display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;background:'+c2.bg+';color:'+c2.fg+';';
+    var av3 = document.createElement('span');
+    av3.style.cssText = 'width:14px;height:14px;border-radius:50%;background:'+c2.fg+';color:var(--card-bg);display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;';
+    av3.textContent = ini(r.smaResp);
+    rB.appendChild(av3);
+    rB.appendChild(document.createTextNode(r.smaResp));
+    badgeRow2.appendChild(rB);
+  } else {
+    var noBadge = document.createElement('span');
+    noBadge.style.cssText = 'font-size:11px;font-weight:700;color:var(--rojo);background:var(--rojo-s);padding:3px 9px;border-radius:20px;';
+    noBadge.textContent = '○ Sin responsable SMA';
+    badgeRow2.appendChild(noBadge);
+  }
+  card.appendChild(badgeRow2);
+
+  var div3 = document.createElement('div');
+  div3.style.cssText = 'border-top:1px solid var(--borde);margin-bottom:10px;';
+  card.appendChild(div3);
+
+  function mkSMABtn(icon, label, color, clickFn){
+    var btn = document.createElement('button');
+    btn.style.cssText = 'display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--borde);background:var(--fondo);cursor:pointer;font-size:13px;font-weight:600;color:'+(color||'var(--texto)')+';text-align:left;transition:background .1s;margin-bottom:6px;';
+    btn.onmouseover = function(){ btn.style.background='var(--gris)'; };
+    btn.onmouseout  = function(){ btn.style.background='var(--fondo)'; };
+    var ico = document.createElement('span');
+    ico.style.cssText = 'width:22px;text-align:center;font-size:15px;flex-shrink:0;';
+    ico.textContent = icon;
+    btn.appendChild(ico);
+    btn.appendChild(document.createTextNode(label));
+    btn.onclick = function(e){ e.stopPropagation(); overlay.remove(); clickFn(); };
+    return btn;
+  }
+
+  var actSMA = document.createElement('div');
+
+  // Asignar / Editar responsable SMA (picker de equipo completo)
+  actSMA.appendChild(mkSMABtn(tieneResp?'✏️':'👤', tieneResp?'Editar responsable SMA':'Asignar responsable SMA', null, function(){
+    // Abre picker reutilizable pero guarda en campo 'smaResp'
+    mostrarPickerSMAResp(r.source, r.mes, proyecto, seccion);
+  }));
+
+  // Quitar responsable SMA
+  if(tieneResp){
+    actSMA.appendChild(mkSMABtn('✕','Quitar responsable SMA','#e55',function(){
+      saveField(r.source, r.mes, proyecto, seccion, 'smaResp', '');
+    }));
+  }
+
+  card.appendChild(actSMA);
+
+  var cancelSMA = document.createElement('button');
+  cancelSMA.style.cssText = 'margin-top:4px;width:100%;padding:8px;border:none;background:transparent;color:var(--suave);font-size:12px;cursor:pointer;border-radius:8px;';
+  cancelSMA.textContent = 'Cancelar';
+  cancelSMA.onmouseover = function(){ cancelSMA.style.background='var(--gris)'; };
+  cancelSMA.onmouseout  = function(){ cancelSMA.style.background='transparent'; };
+  cancelSMA.onclick = function(e){ e.stopPropagation(); overlay.remove(); };
+  card.appendChild(cancelSMA);
+
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
+}
+
+// ─── PICKER DE RESPONSABLE SMA ────────────────────────────────
+function mostrarPickerSMAResp(source, mes, proyecto, seccion){
+  var prev = document.getElementById('sma-picker-float');
+  if(prev) prev.remove();
+
+  var overlay = document.createElement('div');
+  overlay.id = 'sma-picker-float';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9991;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;animation:fadeInPicker .15s ease;';
+
+  var card = document.createElement('div');
+  card.style.cssText = 'background:var(--card-bg);border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,.28);padding:20px 22px 18px;min-width:300px;max-width:340px;';
+
+  var titP = document.createElement('div');
+  titP.style.cssText = 'font-size:13px;font-weight:800;color:var(--texto);margin-bottom:4px;';
+  titP.textContent = '¿Quién lleva la planilla SMA?';
+  var subP = document.createElement('div');
+  subP.style.cssText = 'font-size:11px;color:var(--suave);margin-bottom:14px;';
+  subP.textContent = seccion + ' · ' + proyecto;
+  card.appendChild(titP);
+  card.appendChild(subP);
+
+  var grid2 = document.createElement('div');
+  grid2.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:8px;';
+  RESP_EQUIPO.forEach(function(n){
+    var c = gc(n);
+    var btn2 = document.createElement('button');
+    btn2.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:2px solid var(--borde);background:var(--fondo);cursor:pointer;font-size:13px;font-weight:600;color:var(--texto);transition:all .12s;';
+    btn2.onmouseover = function(){ btn2.style.borderColor=c.fg; btn2.style.background=c.bg; };
+    btn2.onmouseout  = function(){ btn2.style.borderColor='var(--borde)'; btn2.style.background='var(--fondo)'; };
+    var avP = document.createElement('span');
+    avP.style.cssText = 'width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;background:'+c.bg+';color:'+c.fg+';';
+    avP.textContent = ini(n);
+    btn2.appendChild(avP);
+    btn2.appendChild(document.createTextNode(n));
+    btn2.onclick = function(e){
+      e.stopPropagation();
+      overlay.remove();
+      saveField(source, mes, proyecto, seccion, 'smaResp', n);
+    };
+    grid2.appendChild(btn2);
+  });
+  card.appendChild(grid2);
+
+  var cancelP = document.createElement('button');
+  cancelP.style.cssText = 'margin-top:12px;width:100%;padding:8px;border:none;background:transparent;color:var(--suave);font-size:12px;cursor:pointer;border-radius:8px;';
+  cancelP.textContent = 'Cancelar';
+  cancelP.onmouseover = function(){ cancelP.style.background='var(--gris)'; };
+  cancelP.onmouseout  = function(){ cancelP.style.background='transparent'; };
+  cancelP.onclick = function(e){ e.stopPropagation(); overlay.remove(); };
+  card.appendChild(cancelP);
+
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
 }
 
 // Mantener compatibilidad con toggleSeccion usado en código existente
@@ -2482,7 +2777,7 @@ function saveField(source, mes, proyecto, seccion, field, value){
     // Invalidar caché de esta hoja para próxima carga
     try{ localStorage.removeItem('ceamar3_'+source+'_'+mes); }catch(e){}
     // Re-renderizar tabs que dependen de estos datos
-    render(); renderUrgentes(); renderPendientes();
+    render(); renderUrgentes(); renderPendientes(); renderSMA(); renderEquipo();
   }).catch(function(){
     showToast('✗ Error al guardar', 'err');
   });
@@ -2863,13 +3158,19 @@ function renderSMA(){
     var seccRows = p.secciones.map(function(s){
       var tieneResp = s.smaResp && s.smaResp.trim();
       var c = tieneResp ? gc(s.smaResp) : {bg:'#f5f5f5',fg:'#bbb'};
-      return '<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;font-size:12px;'+(tieneResp?'':'background:var(--rojo-s);')+'">'
-        +'<span style="font-size:11px;width:14px;text-align:center;color:'+(tieneResp?'var(--verde)':'var(--rojo)+\'\'')+';">'+(tieneResp?'✓':'○')+'</span>'
+      var safeSecSMA = s.seccion.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      var safePrSMA  = p.proyecto.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      return '<div onclick="mostrarMenuSMA(event,\''+safePrSMA+'\',\''+safeSecSMA+'\')" '
+        +'style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;font-size:12px;cursor:pointer;transition:background .1s;'+(tieneResp?'':'background:var(--rojo-s);')+'" '
+        +'onmouseover="this.style.background=\'var(--gris)\'" onmouseout="this.style.background=\''+(tieneResp?'transparent':'var(--rojo-s)')+'\';">'
+        +'<span style="font-size:11px;width:14px;text-align:center;color:'+(tieneResp?'var(--verde)':'var(--rojo)')+';">'+(tieneResp?'✓':'○')+'</span>'
         +'<span style="flex:1;font-weight:500;color:var(--texto);">'+s.seccion+'</span>'
         +(tieneResp
           ? '<span class="av av-sm" style="background:'+c.bg+';color:'+c.fg+';">'+ini(s.smaResp)+'</span>'
             +'<span style="font-size:11px;color:var(--suave);">'+s.smaResp+'</span>'
-          : '<span style="font-size:11px;color:var(--rojo);font-weight:600;">Sin responsable SMA</span>')
+            +'<span style="font-size:10px;color:var(--suave);opacity:.6;">✏️</span>'
+          : '<span style="font-size:11px;color:var(--rojo);font-weight:600;">Sin responsable SMA</span>'
+            +'<span style="font-size:10px;color:var(--suave);opacity:.6;">＋</span>')
         +'</div>';
     }).join('');
 

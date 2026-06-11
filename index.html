@@ -1529,11 +1529,14 @@ function render(){
       var tagCls = est==='completada'?'secc-ok':est==='en_proceso'?'secc-tag':est==='asignada'?'secc-tag':'secc-pend';
       var estIcon = getEstadoIcon(est);
       var estTitle = 'Estado: '+getEstadoLabel(est)+' · Clic para acciones rápidas';
-      // Mostrar avatar del responsable en el chip si existe
+      // Mostrar avatar(s) del responsable en el chip
       var respTag = '';
       if(s.responsable && s.responsable.trim()){
-        var _c = gc(s.responsable);
-        respTag = '<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:'+_c.fg+';color:white;font-size:9px;font-weight:900;margin-left:3px;">'+ini(s.responsable)+'</span>';
+        var rParts = s.responsable.split(' y ').map(function(x){return x.trim();}).filter(Boolean);
+        rParts.forEach(function(rn){
+          var _c = gc(rn);
+          respTag += '<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:'+_c.fg+';color:white;font-size:9px;font-weight:900;margin-left:2px;">'+ini(rn)+'</span>';
+        });
       }
       return '<span class="secc-tag '+tagCls+'" '
         +'title="'+estTitle+'" '
@@ -1911,66 +1914,82 @@ function ciclarEstado(ev, proyecto, seccion){
 }
 
 function mostrarPickerResponsable(ancla, source, mes, proyecto, seccion){
-  // Eliminar picker anterior si existe
   var prev = document.getElementById('resp-picker-float');
   if(prev) prev.remove();
-
-  // Overlay semitransparente
   var overlay = document.createElement('div');
   overlay.id = 'resp-picker-float';
   overlay.style.cssText = 'position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;animation:fadeInPicker .15s ease;';
-
   var card = document.createElement('div');
   card.style.cssText = 'background:var(--card-bg);border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,.28);padding:20px 22px 18px;min-width:300px;max-width:340px;';
-
-  // Título
   var titulo = document.createElement('div');
   titulo.style.cssText = 'font-size:13px;font-weight:800;color:var(--texto);margin-bottom:4px;';
-  titulo.textContent = '¿Quién se encarga?';
+  titulo.textContent = '¿Quién se encarga? (máx. 2)';
   var sub = document.createElement('div');
   sub.style.cssText = 'font-size:11px;color:var(--suave);margin-bottom:14px;';
   sub.textContent = seccion + ' · ' + proyecto;
   card.appendChild(titulo);
   card.appendChild(sub);
-
-  // Grilla 2 columnas
+  var respActual = '';
+  ALL.forEach(function(row){
+    if(row.proyecto===proyecto && row.seccion===seccion && row.mes===mes && row.source===source)
+      respActual = row.responsable||'';
+  });
+  var sel = respActual.trim() ? respActual.split(' y ').map(function(s){return s.trim();}).filter(Boolean).slice(0,2) : [];
+  var counter = document.createElement('div');
+  counter.style.cssText = 'font-size:11px;color:var(--suave);margin-bottom:10px;text-align:right;';
+  function updateCounter(){ counter.textContent = sel.length + '/2 seleccionados'; }
+  updateCounter();
+  card.appendChild(counter);
   var grid = document.createElement('div');
   grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:8px;';
-
+  var btnRefs = [];
   RESP_EQUIPO.forEach(function(n){
     var c = gc(n);
     var btn = document.createElement('button');
-    btn.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:2px solid var(--borde);background:var(--fondo);cursor:pointer;font-size:13px;font-weight:600;color:var(--texto);transition:all .12s;';
-    btn.onmouseover = function(){ btn.style.borderColor=c.fg; btn.style.background=c.bg; };
-    btn.onmouseout  = function(){ btn.style.borderColor='var(--borde)'; btn.style.background='var(--fondo)'; };
-
+    function refreshBtn(){
+      var isSel = sel.indexOf(n) >= 0;
+      btn.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;border:2px solid '+(isSel?c.fg:'var(--borde)')+';background:'+(isSel?c.bg:'var(--fondo)')+';cursor:pointer;font-size:13px;font-weight:600;color:var(--texto);';
+    }
+    refreshBtn();
+    btnRefs.push({n:n,refresh:refreshBtn});
     var av = document.createElement('span');
     av.style.cssText = 'width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;background:'+c.bg+';color:'+c.fg+';';
     av.textContent = ini(n);
-
     btn.appendChild(av);
     btn.appendChild(document.createTextNode(n));
-
     btn.onclick = function(e){
       e.stopPropagation();
-      overlay.remove();
-      // saveField ya actualiza ALL en memoria y llama render() en su .then()
-      saveField(source, mes, proyecto, seccion, 'responsable', n);
+      var idx = sel.indexOf(n);
+      if(idx>=0){ sel.splice(idx,1); }
+      else if(sel.length<2){ sel.push(n); }
+      btnRefs.forEach(function(b){b.refresh();});
+      updateCounter();
     };
     grid.appendChild(btn);
   });
-
   card.appendChild(grid);
-
-  // Botón quitar asignado (solo si hay responsable actual)
-  var respActual = '';
-  ALL.forEach(function(row){ if(row.proyecto===proyecto && row.seccion===seccion && row.mes===mes && row.source===source) respActual = row.responsable||''; });
+  var sep = document.createElement('div');
+  sep.style.cssText = 'border-top:1px solid var(--borde);margin:14px 0 10px;';
+  card.appendChild(sep);
+  var guardar = document.createElement('button');
+  guardar.style.cssText = 'width:100%;padding:10px;border-radius:10px;border:none;background:var(--azul-c);color:white;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:8px;';
+  guardar.textContent = 'Guardar';
+  guardar.onclick = function(e){
+    e.stopPropagation();
+    overlay.remove();
+    var valor = sel.join(' y ');
+    if(valor){
+      setEstado(source, mes, proyecto, seccion, 'asignada');
+      saveField(source, mes, proyecto, seccion, 'responsable', valor);
+    }
+  };
+  card.appendChild(guardar);
   if(respActual.trim()){
     var quitarBtn = document.createElement('button');
-    quitarBtn.style.cssText = 'margin-top:8px;width:100%;padding:9px;border:2px solid var(--borde);background:transparent;color:var(--suave);font-size:12px;cursor:pointer;border-radius:10px;';
+    quitarBtn.style.cssText = 'width:100%;padding:9px;border:2px solid var(--borde);background:transparent;color:var(--suave);font-size:12px;cursor:pointer;border-radius:10px;margin-bottom:8px;';
     quitarBtn.textContent = '✕ Quitar asignado';
-    quitarBtn.onmouseover = function(){ quitarBtn.style.borderColor='#e55';quitarBtn.style.color='#e55'; };
-    quitarBtn.onmouseout  = function(){ quitarBtn.style.borderColor='var(--borde)';quitarBtn.style.color='var(--suave)'; };
+    quitarBtn.onmouseover = function(){quitarBtn.style.borderColor='#e55';quitarBtn.style.color='#e55';};
+    quitarBtn.onmouseout  = function(){quitarBtn.style.borderColor='var(--borde)';quitarBtn.style.color='var(--suave)';};
     quitarBtn.onclick = function(e){
       e.stopPropagation();
       overlay.remove();
@@ -1979,23 +1998,16 @@ function mostrarPickerResponsable(ancla, source, mes, proyecto, seccion){
     };
     card.appendChild(quitarBtn);
   }
-
-  // Botón cancelar
   var cancel = document.createElement('button');
   cancel.style.cssText = 'margin-top:12px;width:100%;padding:8px;border:none;background:transparent;color:var(--suave);font-size:12px;cursor:pointer;border-radius:8px;';
   cancel.textContent = 'Cancelar';
-  cancel.onmouseover = function(){ cancel.style.background='var(--gris)'; };
-  cancel.onmouseout  = function(){ cancel.style.background='transparent'; };
-  cancel.onclick = function(e){ e.stopPropagation(); overlay.remove(); };
+  cancel.onmouseover = function(){cancel.style.background='var(--gris)';};
+  cancel.onmouseout  = function(){cancel.style.background='transparent';};
+  cancel.onclick = function(e){e.stopPropagation();overlay.remove();};
   card.appendChild(cancel);
-
   overlay.appendChild(card);
   document.body.appendChild(overlay);
-
-  // Cerrar al hacer clic en el overlay (fuera de la card)
-  overlay.onclick = function(e){ if(e.target===overlay) overlay.remove(); };
-
-  // Animación CSS
+  overlay.onclick = function(e){if(e.target===overlay)overlay.remove();};
   if(!document.getElementById('picker-anim-style')){
     var st = document.createElement('style');
     st.id = 'picker-anim-style';
@@ -2054,15 +2066,17 @@ function mostrarMenuAccion(ev, proyecto, seccion){
   eBadge.textContent = ei.icon + ' ' + ei.label;
   badgeRow.appendChild(eBadge);
   if(tieneResp){
-    var c = gc(r.responsable);
-    var rBadge = document.createElement('span');
-    rBadge.style.cssText = 'display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;background:'+c.bg+';color:'+c.fg+';';
-    var av2 = document.createElement('span');
-    av2.style.cssText = 'width:14px;height:14px;border-radius:50%;background:'+c.fg+';color:var(--card-bg);display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;';
-    av2.textContent = ini(r.responsable);
-    rBadge.appendChild(av2);
-    rBadge.appendChild(document.createTextNode(r.responsable));
-    badgeRow.appendChild(rBadge);
+    r.responsable.split(' y ').map(function(x){return x.trim();}).filter(Boolean).forEach(function(rn){
+      var c = gc(rn);
+      var rBadge = document.createElement('span');
+      rBadge.style.cssText = 'display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;background:'+c.bg+';color:'+c.fg+';';
+      var av2 = document.createElement('span');
+      av2.style.cssText = 'width:14px;height:14px;border-radius:50%;background:'+c.fg+";color:var(--card-bg);display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:900;";
+      av2.textContent = ini(rn);
+      rBadge.appendChild(av2);
+      rBadge.appendChild(document.createTextNode(rn));
+      badgeRow.appendChild(rBadge);
+    });
   }
   card.appendChild(badgeRow);
 

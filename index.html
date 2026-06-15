@@ -8,7 +8,7 @@
 <style>
   :root{
     --verde:#1a5c2e;--verde-s:#e8f5e9;--azul:#0d3d5c;--azul-c:#1565c0;--azul-s:#e3f2fd;
-    --amber:#f57c00;--amber-s:#fff3e0;--rojo:#c62828;--rojo-s:#ffebee;
+    --amber:#f57c00;--amber-s:#fff3e0;--rojo:#c62828;--roj-s:#ffebee;
     --gris:#f4f6f8;--borde:#e0e0e0;--texto:#1a1a2e;--suave:#6b7280;
     --sombra:0 2px 14px rgba(0,0,0,0.07);--sombra-hover:0 8px 28px rgba(0,0,0,0.13);
     --r:14px;--bg:#f0f4f8;--card-bg:white;
@@ -1625,9 +1625,9 @@ function estadoKey(source, mes, proyecto, seccion){
 function getEstado(r){
   var k = estadoKey(r.source, r.mes, r.proyecto, r.seccion);
   var stored = ESTADOS_STORE[k];
-  if(stored) return stored;
-  // Inferencia desde datos existentes para retrocompatibilidad
+  // Drive siempre gana si dice completado=true: evita que localStorage obsoleto oculte secciones ya completas
   if(r.completado) return 'completada';
+  if(stored && stored !== 'completada') return stored;
   if(r.responsable && r.responsable.trim()) return 'asignada';
   return 'pendiente';
 }
@@ -3281,7 +3281,7 @@ function verHistorial(nombre){
   var timeline = orden.map(function(k, idx){
     var g = grupos[k];
     var tot = g.secciones.length;
-    var comp = g.secciones.filter(function(s){ return s.completado; }).length;
+    var comp = g.secciones.filter(function(s){ return getEstado(s)==='completada'; }).length;
     var pct = Math.round(comp/tot*100);
     var estPill = comp===tot ? pill('✓ Completo','p-ok') : comp>0 ? pill(comp+'/'+tot+' secc.','p-parcial') : pill('Sin iniciar','p-pend');
 

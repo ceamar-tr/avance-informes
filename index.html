@@ -1179,7 +1179,7 @@ function getProy(rows){
   rows.forEach(function(r){
     var k = r.proyecto;
     if(!map[k]) map[k]={proyecto:r.proyecto,campanas:[],campanaNorms:[],mes:r.mes,source:r.source,
-                         secciones:[],resp:[],sma:[],tipo:r.tipo||'campaña',periodoIntegrado:r.periodoIntegrado||''};
+                         secciones:[],resp:[],sma:[],tipo:r.tipo||'campaña',periodoIntegrado:r.periodoIntegrado||'',anio:r.anio||r.source};
     map[k].secciones.push(r);
     if(r.campana&&map[k].campanas.indexOf(r.campana)<0) map[k].campanas.push(r.campana);
     var cn=r.campanaNorm||r.campana;
@@ -1195,7 +1195,7 @@ function getProy(rows){
     var enProceso = p.secciones.filter(function(s){ return getEstado(s)==='en_proceso'; }).length;
     var pendientes= p.secciones.filter(function(s){ return getEstado(s)==='pendiente'; }).length;
     return Object.assign({},p,{
-      campana: p.campanaNorms.map(function(c){return c?(c+' '+p.source):c;}).join(' · '),
+      campana: p.campanaNorms.map(function(c){return c?(c+' '+(p.anio||p.source)):c;}).join(' · '),
       tipo: p.tipo||'campaña', periodoIntegrado: p.periodoIntegrado||'',
       tot:tot, comp:comp, pct:tot>0?Math.round(comp/tot*100):0, done:comp===tot,
       asignadas:asignadas, enProceso:enProceso, pendientesSecc:pendientes
@@ -2554,7 +2554,7 @@ function renderBusqHist(){
     var k = r.proyecto;
     if(!clienteMap[cliente][k]) clienteMap[cliente][k] = {};
     var mk = r.source + '|' + r.mes + '|' + (r.campanaNorm||r.campana||'');
-    if(!clienteMap[cliente][k][mk]) clienteMap[cliente][k][mk] = {anio:r.source, mes:r.mes, campana:r.campanaNorm||r.campana||'', secciones:[]};
+    if(!clienteMap[cliente][k][mk]) clienteMap[cliente][k][mk] = {anio:r.anio||r.source, mes:r.mes, campana:r.campanaNorm||r.campana||'', secciones:[]};
     clienteMap[cliente][k][mk].secciones.push(r);
   });
 

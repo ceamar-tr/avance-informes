@@ -133,7 +133,10 @@
   .proy-logo-col .cli-name{font-size:9px;font-weight:600;letter-spacing:.3px;text-align:center;opacity:.7;line-height:1.2;}
   .proy-content{flex:1;min-width:0;}
   .proy-nombre{font-size:17px;font-weight:700;color:var(--azul);margin-bottom:3px;line-height:1.25;}
-  .proy-campana{font-size:11px;color:var(--suave);margin-bottom:10px;}
+  .proy-campana{font-size:11px;color:var(--suave);margin-bottom:4px;}
+  .proy-tipo-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:12px;margin-bottom:3px;width:fit-content;}
+  .proy-tipo-camp{color:var(--suave);background:var(--gris);}
+  .proy-tipo-ii{color:var(--azul-c);background:var(--azul-s);}
   .proy-prog-wrap{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
   .proy-prog-bar{flex:1;height:8px;background:var(--gris);border-radius:5px;overflow:hidden;}
   .proy-prog-fill{height:100%;border-radius:5px;transition:width .7s ease;}
@@ -791,6 +794,19 @@
         <input type="text" id="np-nombre" placeholder="ej. QB2 PS14, Guacolda II..." oninput="npValidar()" autocomplete="off" list="np-proy-list">
         <datalist id="np-proy-list"></datalist>
       </div>
+      <div class="np-field">
+        <label>Tipo de registro</label>
+        <select id="np-tipo" onchange="npTipoCambio()" style="width:100%;padding:7px;border-radius:8px;border:1px solid var(--borde);font-size:13px;font-family:'DM Sans',sans-serif;">
+          <option value="campaña">📄 Campaña</option>
+          <option value="informe_integrado">📋 Informe Integrado</option>
+        </select>
+      </div>
+      <div id="np-periodo-wrap" style="display:none;">
+        <div class="np-field">
+          <label>Período integrado</label>
+          <input id="np-periodo" type="text" placeholder="Ej: Invierno 2025 – Otoño 2026" style="width:100%;padding:7px;border-radius:8px;border:1px solid var(--borde);font-size:13px;font-family:'DM Sans',sans-serif;">
+        </div>
+      </div>
       <div class="np-row2">
         <div class="np-field">
           <label>Estación / período</label>
@@ -1031,7 +1047,9 @@ function fetchSheet(id, sheetName, source){
       var iU  = findCol(['ubic','ruta','carpeta','path'],   [], 5);
       var iSMA= findCol(['sma'],                   [],      6);
       var iCN = findCol(['norm'],                  [],      7);
-      var iA  = findCol(['ano','year','anio'],      [],      8);
+      var iA    = findCol(['ano','year','anio'],      [],      8);
+      var iTipo = findCol(['tipo'],                   [],     -1);
+      var iPer  = findCol(['periodo','integrado'],    [],     -1);
 
       var rows=[], pA='', cA='', cnA='', aA='';
       json.table.rows.forEach(function(row){
@@ -1057,9 +1075,12 @@ function fetchSheet(id, sheetName, source){
         if(campaNorm) cnA=campaNorm;
         if(anio)      aA=anio;
         if(!seccion)  return;
-        rows.push({proyecto:pA,campana:cA,campanaNorm:cnA,anio:aA||source,
+        var tipoR=iTipo>=0?(String(cv(iTipo)||'').trim()||'campaña'):'campaña';
+              var perR=iPer>=0?String(cv(iPer)||'').trim():'';
+              rows.push({proyecto:pA,campana:cA,campanaNorm:cnA,anio:aA||source,
                    seccion:seccion,responsable:responsable,completado:completado,
-                   ubicacion:ubicacion,smaResp:smaResp,mes:sheetName,source:source});
+                   ubicacion:ubicacion,smaResp:smaResp,mes:sheetName,source:source,
+                   tipo:tipoR,periodoIntegrado:perR});
       });
       setCached(cacheKey, rows);
       return rows;
@@ -1158,7 +1179,7 @@ function getProy(rows){
   rows.forEach(function(r){
     var k = r.proyecto;
     if(!map[k]) map[k]={proyecto:r.proyecto,campanas:[],campanaNorms:[],mes:r.mes,source:r.source,
-                         secciones:[],resp:[],sma:[]};
+                         secciones:[],resp:[],sma:[],tipo:r.tipo||'campaña',periodoIntegrado:r.periodoIntegrado||''};
     map[k].secciones.push(r);
     if(r.campana&&map[k].campanas.indexOf(r.campana)<0) map[k].campanas.push(r.campana);
     var cn=r.campanaNorm||r.campana;
@@ -1174,7 +1195,8 @@ function getProy(rows){
     var enProceso = p.secciones.filter(function(s){ return getEstado(s)==='en_proceso'; }).length;
     var pendientes= p.secciones.filter(function(s){ return getEstado(s)==='pendiente'; }).length;
     return Object.assign({},p,{
-      campana: p.campanaNorms.join(' · '),
+      campana: p.campanaNorms.map(function(c){return c?(c+' '+p.source):c;}).join(' · '),
+      tipo: p.tipo||'campaña', periodoIntegrado: p.periodoIntegrado||'',
       tot:tot, comp:comp, pct:tot>0?Math.round(comp/tot*100):0, done:comp===tot,
       asignadas:asignadas, enProceso:enProceso, pendientesSecc:pendientes
     });
@@ -1323,7 +1345,12 @@ function getF(){
     var clienteMatch = q!=='' && getClienteDeProyecto(r.proyecto).toLowerCase().indexOf(q)>=0;
     return r.mes===mesSel && r.source===anioSel &&
            (camp==='Todas'||r.campanaNorm===camp) &&
-           (q===''||r.proyecto.toLowerCase().indexOf(q)>=0||clienteMatch) &&
+           (q===''||r.proyecto.toLowerCase().indexOf(q)>=0||clienteMatch||
+        (r.campanaNorm||r.campana||'').toLowerCase().indexOf(q)>=0||
+        ((r.campanaNorm||r.campana||'').toLowerCase()+' '+r.source).indexOf(q)>=0||
+        (r.periodoIntegrado||'').toLowerCase().indexOf(q)>=0||
+        (r.tipo==='informe_integrado'?'informe integrado':'campaña').indexOf(q)>=0||
+        (r.source||'').indexOf(q)>=0) &&
            (respFiltro===''||normStr(r.responsable).toLowerCase()===normStr(respFiltro).toLowerCase());
   });
 }
@@ -1570,7 +1597,9 @@ function render(){
       logoCol+
       '<div class="proy-content">'+
         '<div class="proy-nombre">'+displayNombre(p.proyecto)+'</div>'+
-        '<div class="proy-campana">'+p.campana+' · '+p.mes+' '+p.source+'</div>'+
+        '<div class="proy-tipo-badge '+(p.tipo==='informe_integrado'?'proy-tipo-ii':'proy-tipo-camp')+'">'+
+        (p.tipo==='informe_integrado'?'📋 Informe Integrado':'📄 Campaña')+'</div>'+
+        '<div class="proy-campana">'+(p.tipo==='informe_integrado'?(p.periodoIntegrado||'Período integrado'):(p.campana?p.campana+' · '+p.mes+' '+p.source:p.mes+' '+p.source))+'</div>+'
         '<div class="proy-prog-wrap">'+
           '<div class="proy-prog-bar"><div class="proy-prog-fill" style="width:'+p.pct+'%;background:'+color+';"></div></div>'+
           '<div class="proy-prog-pct">'+p.pct+'%</div>'+
@@ -3699,12 +3728,21 @@ function renderSugerenciasCard(){
 }
 
 // ─── MODAL NUEVO PROYECTO ─────────────────────────────────
+function npTipoCambio(){
+  var tipo=(document.getElementById('np-tipo')||{value:'campaña'}).value;
+  var pw=document.getElementById('np-periodo-wrap');
+  if(pw) pw.style.display=tipo==='informe_integrado'?'':' none';
+}
 function npAbrir(suger){
   var ov = document.getElementById('np-overlay');
   ov.className = 'np-overlay open';
 
   // Resetear formulario
   document.getElementById('np-nombre').value    = suger&&suger.proyecto  ? suger.proyecto  : '';
+  var elTipo = document.getElementById('np-tipo');
+  if(elTipo){ elTipo.value = 'campaña'; npTipoCambio(); }
+  var elPer = document.getElementById('np-periodo');
+  if(elPer) elPer.value = '';
   document.getElementById('np-estacion').value  = suger&&suger.estacion  ? suger.estacion  : '';
   document.getElementById('np-campana').value   = suger&&suger.campana   ? suger.campana   : 'Verano';
   document.getElementById('np-secc-list').innerHTML = '';
@@ -3880,7 +3918,9 @@ function npGuardar(){
     body: JSON.stringify({
       action:'addProyecto', ssId:ssId, sheetName:mesSel,
       proyecto:nombre, estacion:estacion, campana:campana,
-      anio:parseInt(anioSel), secciones:secciones
+      anio:parseInt(anioSel), secciones:secciones,
+      tipo:(document.getElementById('np-tipo')||{value:'campaña'}).value,
+      periodoIntegrado:(document.getElementById('np-periodo')||{value:''}).value.trim()
     })
   })
   .then(function(r){ return r.json(); })

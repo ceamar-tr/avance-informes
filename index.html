@@ -1599,7 +1599,7 @@ function render(){
         '<div class="proy-nombre">'+displayNombre(p.proyecto)+'</div>'+
         '<div class="proy-tipo-badge '+(p.tipo==='informe_integrado'?'proy-tipo-ii':'proy-tipo-camp')+'">'+
         (p.tipo==='informe_integrado'?'📋 Informe Integrado':'📄 Campaña')+'</div>'+
-        '<div class="proy-campana">'+(p.tipo==='informe_integrado'?(p.periodoIntegrado||'Período integrado'):(p.campana?p.campana+' · '+p.mes+' '+p.source:p.mes+' '+p.source))+'</div>+'
+        '<div class="proy-campana">'+(p.tipo==='informe_integrado'?(p.periodoIntegrado||'Período integrado'):(p.campana?p.campana+' · '+p.mes+' '+p.source:p.mes+' '+p.source))+'</div>'+
         '<div class="proy-prog-wrap">'+
           '<div class="proy-prog-bar"><div class="proy-prog-fill" style="width:'+p.pct+'%;background:'+color+';"></div></div>'+
           '<div class="proy-prog-pct">'+p.pct+'%</div>'+

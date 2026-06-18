@@ -84,6 +84,10 @@
   .syncbar.err{background:var(--rojo-s);border:1px solid #ef9a9a;color:var(--rojo);}
   .syncbar.loading{background:var(--azul-s);border:1px solid #90caf9;color:var(--azul-c);}
   .syncbar.warn{background:var(--amber-s);border:1px solid #ffcc80;color:var(--amber);}
+  .np-ac-drop{display:none;position:absolute;top:100%;left:0;right:0;background:var(--card-bg);border:1px solid var(--borde);border-radius:8px;box-shadow:var(--sombra);z-index:9999;max-height:220px;overflow-y:auto;margin-top:2px;}
+  .np-ac-item{padding:9px 14px;font-size:13px;color:var(--texto);cursor:pointer;border-bottom:1px solid var(--borde);}
+  .np-ac-item:last-child{border-bottom:none;}
+  .np-ac-item:hover{background:var(--azul-s);color:var(--azul);}
   .spin{width:14px;height:14px;border:2px solid rgba(0,0,0,0.1);border-top-color:var(--azul-c);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;}
   @keyframes spin{to{transform:rotate(360deg)}}
   .err-list{font-size:10px;color:var(--rojo);margin-left:8px;opacity:0.8;}
@@ -470,7 +474,7 @@
   .np-modal-header button{background:none;border:none;cursor:pointer;font-size:18px;color:var(--suave);padding:2px 6px;border-radius:6px;}
   .np-modal-header button:hover{background:var(--gris);}
   .np-subtitle{font-size:11px;color:var(--suave);margin-bottom:14px;}
-  .np-field{margin-bottom:12px;}
+  .np-field{margin-bottom:12px;position:relative;}
   .np-field label{display:block;font-size:11px;font-weight:600;color:var(--suave);margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px;}
   .np-field input,.np-field select{width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--borde);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;background:var(--card-bg);color:var(--texto);transition:border-color .2s;}
   .np-field input:focus,.np-field select:focus{border-color:var(--verde);}
@@ -813,8 +817,8 @@
     <div class="np-body">
       <div class="np-field">
         <label>Nombre del proyecto / cliente</label>
-        <input type="text" id="np-nombre" placeholder="ej. QB2 PS14, Guacolda II..." oninput="npValidar()" autocomplete="off" list="np-proy-list">
-        <datalist id="np-proy-list"></datalist>
+        <input type="text" id="np-nombre" placeholder="ej. QB2 PS14, Guacolda II..." oninput="npValidar()" autocomplete="off">
+        <div id="np-ac-drop" class="np-ac-drop"></div>
       </div>
       <div class="np-field">
         <label>Tipo de registro</label>
@@ -3814,13 +3818,21 @@ function npAbrir(suger){
   document.getElementById('np-subtitle').textContent =
     'Mes: '+mesSel+' '+anioSel+(suger ? ' · autocompletado desde historial' : '');
 
-  // Datalist con proyectos existentes
-  var dl = document.getElementById('np-proy-list');
-  dl.innerHTML = '';
+  // Dropdown personalizado con proyectos existentes
+  var drop = document.getElementById('np-ac-drop');
   var pus = [];
   ALL.forEach(function(r){ if(pus.indexOf(r.proyecto)<0) pus.push(r.proyecto); });
-  pus.sort().forEach(function(p){
-    var opt=document.createElement('option'); opt.value=p; dl.appendChild(opt);
+  var q = nombre.toLowerCase();
+  var matches = q.length>0 ? pus.filter(function(p){ return p.toLowerCase().indexOf(q)>=0; }) : [];
+  if(matches.length>0){
+    drop.innerHTML = matches.slice(0,8).map(function(p){
+      var safe=p.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      return '<div class="np-ac-item" onclick="document.getElementById(\'np-nombre\').value=\''+safe+'\';document.getElementById(\'np-ac-drop\').style.display=\'none\';npValidar();">'+p+'</div>';
+    }).join('');
+    drop.style.display='block';
+  } else { drop.innerHTML=''; drop.style.display='none'; }
+
+t.createElement('option'); opt.value=p; dl.appendChild(opt);
   });
 
   // Sugerencias en modal

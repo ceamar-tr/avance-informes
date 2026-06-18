@@ -1674,7 +1674,7 @@ function getEstado(r){
   var stored = ESTADOS_STORE[k];
   // Drive siempre gana si dice completado=true: evita que localStorage obsoleto oculte secciones ya completas
   if(r.completado) return 'completada';
-  if(stored && stored !== 'completada') return stored;
+  if(stored) return stored;
   if(r.responsable && r.responsable.trim()) return 'asignada';
   return 'pendiente';
 }

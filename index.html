@@ -833,7 +833,7 @@
           <input id="np-periodo" type="text" placeholder="Ej: Invierno 2025 – Otoño 2026" style="width:100%;padding:7px;border-radius:8px;border:1px solid var(--borde);font-size:13px;font-family:'DM Sans',sans-serif;">
         </div>
       </div>
-      <div class="np-row2">
+      <div class="np-row2" id="np-row2">
         <div class="np-field">
           <label>Estación / período</label>
           <input type="text" id="np-estacion" placeholder="ej. Ver 26, 2do Sem 26...">
@@ -3794,8 +3794,11 @@ function renderSugerenciasCard(){
 // ─── MODAL NUEVO PROYECTO ─────────────────────────────────
 function npTipoCambio(){
   var tipo=(document.getElementById('np-tipo')||{value:'campaña'}).value;
+  var esInt=tipo==='informe_integrado';
   var pw=document.getElementById('np-periodo-wrap');
-  if(pw) pw.style.display=tipo==='informe_integrado'?'':' none';
+  if(pw) pw.style.display=esInt?'':'none';
+  var r2=document.getElementById('np-row2');
+  if(r2) r2.style.display=esInt?'none':'';
 }
 function npAbrir(suger){
   var ov = document.getElementById('np-overlay');

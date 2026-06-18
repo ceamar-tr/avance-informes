@@ -4057,7 +4057,8 @@ function npValidar(){
 function npGuardar(){
   var nombre   = (document.getElementById('np-nombre').value||'').trim();
   var estacion = (document.getElementById('np-estacion').value||'').trim();
-  var campana  = document.getElementById('np-campana').value;
+  var tipo_np2 = (document.getElementById('np-tipo')||{value:'campana'}).value;
+  var campana  = tipo_np2==='informe_integrado' ? 'Informe Integrado' : document.getElementById('np-campana').value;
   if(!nombre){ alert('Ingresa el nombre del proyecto.'); return; }
 
   var secciones=[];

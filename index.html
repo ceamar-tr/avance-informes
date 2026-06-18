@@ -4060,7 +4060,7 @@ function npGuardar(){
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body: JSON.stringify({
-      action:'addProyecto', ssId:ssId, sheetName:mesSel,
+      action:'addProyecto', ssId:ssId, sheetName:MESES_ORD[new Date().getMonth()],
       proyecto:nombre, estacion:estacion, campana:campana,
       anio:parseInt(anioSel), secciones:secciones,
       tipo:(document.getElementById('np-tipo')||{value:'campaña'}).value,

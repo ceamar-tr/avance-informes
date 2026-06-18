@@ -176,6 +176,7 @@
   .vista-toggle.on{background:var(--verde);color:white;border-color:var(--verde);}
   /* ── Layout filtros + calendario ── */
   .filtros-cal-layout{display:flex;gap:16px;align-items:stretch;margin-bottom:12px;}
+  .urgentes-cal-layout{display:flex;gap:16px;align-items:stretch;margin-bottom:12px;}
   .filtros-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;background:var(--card-bg);border-radius:var(--r);padding:12px 14px;box-shadow:var(--sombra);}
   .filtros-fila{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
   .filtros-fila .cli-filter-wrap{margin-bottom:0;}
@@ -641,11 +642,14 @@
       </div>
     </div>
     <button class="np-btn" onclick="npAbrir()">＋ Nuevo proyecto</button>
-    <!-- Layout 2 columnas: filtros izquierda | calendario derecha -->
-    <div class="filtros-cal-layout">
+    <!-- Layout superior: urgentes + calendario -->
+    <div class="urgentes-cal-layout">
+      <div id="urgentes-panel"></div>
+      <div id="cal-actividad-panel"></div>
+    </div>
 
-      <!-- Columna izquierda: filtros + ordenar -->
-      <div class="filtros-col">
+    <!-- Filtros -->
+    <div class="filtros-col">
         <!-- Fila 1: Buscar + Todos los proyectos -->
         <div class="filtros-fila">
           <div class="search-wrap">
@@ -682,12 +686,6 @@
           <button class="vista-toggle" id="btn-vista-compacta" onclick="toggleVistaCompacta()">☰ Compacto</button>
         </div>
       </div>
-
-      <!-- Columna derecha: calendario de actividad -->
-      <div id="cal-actividad-panel"></div>
-
-    </div>
-    <div id="urgentes-panel"></div>
     <div id="peticiones-panel"></div>
     <div class="kgrid" id="kgrid"><div class="loading"><div class="spin-lg"></div></div></div>
     <div class="suger-bar" id="suger-bar"></div>

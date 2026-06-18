@@ -1100,7 +1100,7 @@ function fetchSheet(id, sheetName, source){
         var smaResp     = String(cv(iSMA)||'').trim();
         var campaNorm   = String(cv(iCN) ||'').trim();
         var anio        = cv(iA)?String(cv(iA)).trim():'';
-        if(proyecto)  pA=normalizarProyecto(proyecto);
+        if(proyecto){ pA=normalizarProyecto(proyecto); cA=''; cnA=''; aA=''; }
         if(campana)   cA=campana;
         if(campaNorm) cnA=campaNorm;
         if(anio)      aA=anio;

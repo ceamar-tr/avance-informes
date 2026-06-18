@@ -1146,7 +1146,8 @@ function fetchConfig(cb){
   
   // ─── CARGA PRINCIPAL ─────────────────────────────────────
 function cargar(){
-    fetchConfig();
+  ALL = [];
+  fetchConfig();
   var now = new Date();
   var curMes = MESES_ORD[now.getMonth()];
 
@@ -4086,6 +4087,7 @@ function npGuardar(){
     if(res.success){
       showToast('✓ Proyecto guardado ('+res.added+' filas)', 'ok');
       npCerrar();
+      localStorage.removeItem('ceamar3_' + anioSel + '_' + MESES_ORD[new Date().getMonth()]);
       setTimeout(function(){ cargar(); }, 600);
     } else {
       showToast('✗ '+(res.error||'Error al guardar'), 'err');

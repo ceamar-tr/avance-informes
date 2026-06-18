@@ -1409,7 +1409,7 @@ function buildRespChips(){
 function renderAlertas(){
   var fd=ALL.filter(function(r){return r.mes===mesSel&&r.source===anioSel;});
   var proyectos=getProy(fd);
-  var sinIniciar=proyectos.filter(function(p){return p.comp===0;}).length;
+  var sinIniciar=proyectos.filter(function(p){return p.comp===0&&(p.asignadas||0)===0&&(p.enProceso||0)===0;}).length;
   var pendientes=proyectos.filter(function(p){return !p.done;}).length;
   var completos =proyectos.filter(function(p){return p.done;}).length;
   var alertas='';

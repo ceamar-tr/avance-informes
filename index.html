@@ -1107,6 +1107,7 @@ function fetchSheet(id, sheetName, source){
         if(!seccion)  return;
         var tipoR=iTipo>=0?(String(cv(iTipo)||'').trim()||'campaña'):'campaña';
               if(tipoR==='informe_integrado') cnA='Informe Integrado';
+        if(cnA==='Informe Integrado') tipoR='informe_integrado';
               var perR=iPer>=0?String(cv(iPer)||'').trim():'';
               rows.push({proyecto:pA,campana:cA,campanaNorm:cnA,anio:aA||source,
                    seccion:seccion,responsable:responsable,completado:completado,
@@ -1560,10 +1561,10 @@ function render(){
   else if(sortMode==='pct_asc') proyectos.sort(function(a,b){ return a.pct-b.pct; });
   else if(sortMode==='nombre') proyectos.sort(function(a,b){ return displayNombre(a.proyecto).localeCompare(displayNombre(b.proyecto)); });
   else { // 'estado': sin iniciar → parcial → completo
-    var order={'sin-iniciar':0,'parcial':1,'completo':2};
+    var order={'sin-iniciar':0,'en-progreso':1,'parcial':2,'completo':3};
     proyectos.sort(function(a,b){
-      var ca=a.done?'completo':a.comp>0?'parcial':'sin-iniciar';
-      var cb=b.done?'completo':b.comp>0?'parcial':'sin-iniciar';
+      var ca=a.done?'completo':a.comp>0?'parcial':(a.asignadas>0||a.enProceso>0)?'en-progreso':'sin-iniciar';
+      var cb=b.done?'completo':b.comp>0?'parcial':(b.asignadas>0||b.enProceso>0)?'en-progreso':'sin-iniciar';
       return order[ca]-order[cb];
     });
   }
@@ -1606,7 +1607,7 @@ function render(){
     var avatares=p.resp.slice(0,4).map(function(r){
       var c=gc(r);return '<span class="av av-sm" style="background:'+c.bg+';color:'+c.fg+';" title="'+r+'">'+ini(r)+'</span>';
     }).join('');
-    var estadoPill=p.done?pill('✓ Completo','p-ok'):p.comp>0?pill(p.comp+'/'+p.tot+' secc.','p-parcial'):pill('Sin iniciar','p-pend');
+    var estadoPill=p.done?pill('✓ Completo','p-ok'):p.comp>0?pill(p.comp+'/'+p.tot+' secc.','p-parcial'):(p.asignadas>0||p.enProceso>0)?pill('En progreso','p-parcial'):pill('Sin iniciar','p-pend');
     var safeNombre=p.proyecto.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
     var cliente = getClienteDeProyecto(p.proyecto);
     var cfg = cliente ? (CLIENTES_CONFIG[cliente]||{}) : {};

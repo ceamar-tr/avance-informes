@@ -1116,7 +1116,7 @@ function fetchConfig(cb){
     .then(function(d){
           if(d.ok && d.data){
                   try{ urgentesColores = JSON.parse(d.data.urgentesColores || '{}'); }catch(e){ urgentesColores = {}; }
-        try{ peticionesList = JSON.parse(d.data.peticionesList || '[]'); }catch(e){ peticionesList = []; }
+        try{ var _srv=JSON.parse(d.data.peticionesList||'[]'); if(_srv.length>0){peticionesList=_srv;}else{var _ls=localStorage.getItem('ceamar_peticiones');peticionesList=_ls?JSON.parse(_ls):[];} }catch(e){ peticionesList=[]; }
                   renderUrgentes();
                   renderPeticiones();
           }

@@ -176,8 +176,12 @@
   .vista-toggle.on{background:var(--verde);color:white;border-color:var(--verde);}
   /* ── Layout filtros + calendario ── */
   .filtros-cal-layout{display:flex;gap:16px;align-items:stretch;margin-bottom:12px;}
-  .urgentes-cal-layout{display:flex;gap:16px;align-items:stretch;margin-bottom:12px;}
+  .urgentes-cal-layout{display:flex;gap:16px;align-items:flex-start;margin-bottom:8px;}
   .cal-peticiones-col{display:flex;flex-direction:column;gap:12px;}
+  #peticiones-panel{background:var(--card-bg);border-radius:var(--r);box-shadow:var(--sombra);padding:14px 16px;min-height:120px;display:flex;flex-direction:column;gap:8px;}
+  .pet-panel-hdr{font-size:13px;font-weight:600;color:var(--texto);padding-bottom:8px;border-bottom:1px solid var(--borde);}
+  .pet-vacio{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--suave);padding:20px 0;gap:8px;text-align:center;font-size:12px;}
+  .pet-vacio-icon{font-size:26px;opacity:0.6;}
   .filtros-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;background:var(--card-bg);border-radius:var(--r);padding:12px 14px;box-shadow:var(--sombra);}
   .filtros-fila{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
   .filtros-fila .cli-filter-wrap{margin-bottom:0;}
@@ -2555,13 +2559,13 @@ function renderPeticiones(){
   var res=peticionesList.filter(function(p){return p.resuelto;});
   var lista=_petFiltro==='todas'?peticionesList:_petFiltro==='resueltas'?res:pend;
   var colores={Nathalie:'#1565c0',Rocío:'#6a1b9a',Tamara:'#1a5c2e',Abigail:'#e65100'};
-  var html='<div class="pet-filters">'
+  var html='<div class="pet-panel-hdr">📋 Peticiones del equipo</div>'+'<div class="pet-filters">'
     +'<button class="pet-fbtn'+(_petFiltro==='pendientes'?' act':'')+'" data-f="pendientes" onclick="setPetFiltro(\'pendientes\')">⏳ Pendientes ('+pend.length+')</button>'
     +'<button class="pet-fbtn'+(_petFiltro==='todas'?' act':'')+'" data-f="todas" onclick="setPetFiltro(\'todas\')">Todas ('+peticionesList.length+')</button>'
     +'<button class="pet-fbtn'+(_petFiltro==='resueltas'?' act':'')+'" data-f="resueltas" onclick="setPetFiltro(\'resueltas\')"> Resueltas ('+res.length+')</button>'
     +'</div>';
   if(!lista.length){
-    html+='<p style="color:var(--suave);text-align:center;padding:12px 0;font-size:12px;">'+ (_petFiltro==='resueltas'?'No hay peticiones resueltas':'No hay peticiones pendientes')+'</p>';
+    html+='<div class="pet-vacio"><div class="pet-vacio-icon">📭</div><div>'+(_petFiltro==='resueltas'?'No hay peticiones resueltas':'No hay peticiones pendientes')+'</div></div>';
   } else {
     lista.forEach(function(p){
       var col=colores[p.responsable]||'#999';

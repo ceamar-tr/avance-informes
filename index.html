@@ -687,6 +687,7 @@
           <button class="fchip" onclick="fCamp('Verano',this)">Verano</button>
           <button class="fchip" onclick="fCamp('Primavera',this)">Primavera</button>
           <button class="fchip" onclick="fCamp('Otoño',this)">Otoño</button>
+        <button class="fchip" onclick="fCamp('Informe Integrado',this)">📋 Inf. Integrado</button>
         </div>
         <!-- Fila 4: Cliente -->
         <div class="cli-filter-wrap" id="cli-filter-wrap"></div>
@@ -1105,6 +1106,7 @@ function fetchSheet(id, sheetName, source){
         if(anio)      aA=anio;
         if(!seccion)  return;
         var tipoR=iTipo>=0?(String(cv(iTipo)||'').trim()||'campaña'):'campaña';
+              if(tipoR==='informe_integrado') cnA='Informe Integrado';
               var perR=iPer>=0?String(cv(iPer)||'').trim():'';
               rows.push({proyecto:pA,campana:cA,campanaNorm:cnA,anio:aA||source,
                    seccion:seccion,responsable:responsable,completado:completado,
@@ -3980,7 +3982,8 @@ function npUpdateSeccCount(){
 
 function npValidar(){
   var nombre  = (document.getElementById('np-nombre').value||'').trim();
-  var campana = document.getElementById('np-campana').value;
+  var tipo_np = (document.getElementById('np-tipo')||{value:'campaña'}).value;
+  var campana = tipo_np==='informe_integrado' ? 'Informe Integrado' : document.getElementById('np-campana').value;
   var warn    = document.getElementById('np-warn');
   var submit  = document.getElementById('np-submit');
   if(!nombre){ warn.style.display='none'; warn.className='np-warn'; if(submit) submit.disabled=false; return; }

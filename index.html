@@ -825,8 +825,7 @@
     </div>
     <p class="as-subtitle" id="as-proyecto-nombre"></p>
     <label>Sección</label>
-    <input id="as-secc-input" type="text" placeholder="Ej: Zooplancton" list="as-secc-list" autocomplete="off">
-    <datalist id="as-secc-list"></datalist>
+    <select id="as-secc-input"><option value="">— Selecciona sección —</option></select>
     <label>Responsable</label>
     <input id="as-resp-input" type="text" placeholder="— sin asignar —" list="as-resp-list" autocomplete="off">
     <datalist id="as-resp-list"></datalist>
@@ -3904,8 +3903,15 @@ var _addSeccData = null;
 function abrirAddSecc(proyecto,rawCampana,campNorm,source){
   _addSeccData={proyecto:proyecto,rawCampana:rawCampana,campNorm:campNorm,source:source};
   document.getElementById('as-proyecto-nombre').textContent=proyecto;
-  var dl=document.getElementById('as-secc-list');
-  dl.innerHTML=(SECCIONES_CATALOGO||[]).map(function(s){return '<option value="'+s.nombre+'">';}).join('');
+  var sel=document.getElementById('as-secc-input');
+  var cats={};
+  (SECCIONES_CATALOGO||[]).forEach(function(s){var c=s.categoria||'Otras';if(!cats[c])cats[c]=[];cats[c].push(s);});
+  sel.innerHTML='<option value="">— Selecciona sección —</option>';
+  Object.keys(cats).forEach(function(cat){
+    var og=document.createElement('optgroup');og.label=cat;
+    cats[cat].forEach(function(s){var o=document.createElement('option');o.value=s.nombre;o.textContent=s.nombre;og.appendChild(o);});
+    sel.appendChild(og);
+  });
   var rl=document.getElementById('as-resp-list');
   var resps=[...new Set((ALL||[]).map(function(r){return r.responsable;}).filter(Boolean))];
   rl.innerHTML=resps.map(function(r){return '<option value="'+r+'">';}).join('');

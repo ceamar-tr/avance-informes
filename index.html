@@ -3885,7 +3885,6 @@ var _addSeccData = null;
 function abrirAddSecc(proyecto,rawCampana,campNorm,source){
   _addSeccData={proyecto:proyecto,rawCampana:rawCampana,campNorm:campNorm,source:source};
   document.getElementById('as-proyecto-nombre').textContent=proyecto;
-  // Populate existing sections list
   var seccList=document.getElementById('as-secciones-list');
   var seccItems=document.getElementById('as-secciones-items');
   var divider=document.getElementById('as-divider');
@@ -3893,25 +3892,31 @@ function abrirAddSecc(proyecto,rawCampana,campNorm,source){
     return normalizarProyecto(r.proyecto)===normalizarProyecto(proyecto)&&r.mes===mesSel&&r.source===source;
   });
   if(existingSecs.length>0){
-    seccItems.innerHTML=existingSecs.map(function(r){
-      var safeS=r.seccion.replace(/'/g,"\'");
-      var safeC=(r.campana||'').replace(/'/g,"\'");
-      var safeAnio=(r.anio||source||'').toString();
-      return '<span style="display:inline-flex;align-items:center;gap:3px;background:var(--fondo);border:1px solid var(--borde);border-radius:6px;padding:3px 7px;font-size:12px;">'
-        +r.seccion
-        +'<button onclick="eliminarSecc(''+safeS+'',''+safeC+'',''+safeAnio+'')" '
-        +'title="Eliminar sección" '
-        +'style="background:none;border:none;cursor:pointer;color:var(--suave);font-size:13px;padding:0 0 0 4px;line-height:1;" '
-        +'onmouseover="this.style.color='#e53935'" onmouseout="this.style.color='var(--suave)'">✕</button>'
-        +'</span>';
-    }).join('');
+    seccItems.innerHTML='';
+    existingSecs.forEach(function(r){
+      var span=document.createElement('span');
+      span.style.cssText='display:inline-flex;align-items:center;gap:3px;background:var(--fondo);border:1px solid var(--borde);border-radius:6px;padding:3px 7px;font-size:12px;';
+      var txt=document.createTextNode(r.seccion+' ');
+      var btn=document.createElement('button');
+      btn.textContent='✕';
+      btn.title='Eliminar sección';
+      btn.dataset.secc=r.seccion;
+      btn.dataset.camp=r.campana||'';
+      btn.dataset.anio=(r.anio||source||'').toString();
+      btn.style.cssText='background:none;border:none;cursor:pointer;color:var(--suave);font-size:13px;padding:0 0 0 4px;line-height:1;';
+      btn.onmouseover=function(){this.style.color='#e53935';};
+      btn.onmouseout=function(){this.style.color='var(--suave)';};
+      btn.onclick=function(){eliminarSecc(this.dataset.secc,this.dataset.camp,this.dataset.anio);};
+      span.appendChild(txt);
+      span.appendChild(btn);
+      seccItems.appendChild(span);
+    });
     seccList.style.display='block';
     divider.style.display='block';
   } else {
     seccList.style.display='none';
     divider.style.display='none';
   }
-  // Populate section select dropdown
   var sel=document.getElementById('as-secc-input');
   var cats={};
   (SECCIONES_CATALOGO||[]).forEach(function(s){var c=s.categoria||'Otras';if(!cats[c])cats[c]=[];cats[c].push(s);});

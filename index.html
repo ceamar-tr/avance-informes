@@ -1401,8 +1401,19 @@ function fCamp(v,el){
   render();
 }
 function getClienteDeProyecto(nombreProy){
-  return PROYECTO_CLIENTE[nombreProy] || PROYECTO_CLIENTE[(nombreProy||'').trim()] || '';
+  var n = normalizarProyecto((nombreProy||'').trim());
+  if(!n) return '';
+  // Exact match first
+  if(PROYECTO_CLIENTE[n]) return PROYECTO_CLIENTE[n];
+  // Case-insensitive fallback
+  var nl = n.toLowerCase();
+  var keys = Object.keys(PROYECTO_CLIENTE);
+  for(var i=0;i<keys.length;i++){
+    if(keys[i].toLowerCase()===nl) return PROYECTO_CLIENTE[keys[i]];
+  }
+  return '';
 }
+
 function getF(){
   var q=(document.getElementById('search-input')||{value:''}).value.toLowerCase().trim();
   return ALL.filter(function(r){

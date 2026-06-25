@@ -820,11 +820,16 @@
 <div class="as-overlay" id="as-overlay" onclick="if(event.target===this)cerrarAddSecc()">
   <div class="as-modal">
     <div class="as-header">
-      <h3>＋ Agregar sección</h3>
+      <h3>Gestionar secciones</h3>
       <button onclick="cerrarAddSecc()" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--suave);">✕</button>
     </div>
     <p class="as-subtitle" id="as-proyecto-nombre"></p>
-    <label>Sección</label>
+    <div id="as-secciones-list" style="margin-bottom:14px;display:none;">
+      <div style="font-size:10px;font-weight:700;color:var(--suave);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Secciones actuales</div>
+      <div id="as-secciones-items" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+    </div>
+    <div style="height:1px;background:var(--borde);margin-bottom:14px;display:none;" id="as-divider"></div>
+    <label>＋ Agregar sección</label>
     <select id="as-secc-input"><option value="">— Selecciona sección —</option></select>
     <label>Responsable</label>
     <input id="as-resp-input" type="text" placeholder="— sin asignar —" list="as-resp-list" autocomplete="off">
@@ -835,7 +840,6 @@
     </div>
   </div>
 </div>
-
 <!-- MODAL NUEVO PROYECTO -->
 <div class="np-overlay" id="np-overlay" onclick="if(event.target===this)npCerrar()">
   <div class="np-modal">
@@ -3881,6 +3885,33 @@ var _addSeccData = null;
 function abrirAddSecc(proyecto,rawCampana,campNorm,source){
   _addSeccData={proyecto:proyecto,rawCampana:rawCampana,campNorm:campNorm,source:source};
   document.getElementById('as-proyecto-nombre').textContent=proyecto;
+  // Populate existing sections list
+  var seccList=document.getElementById('as-secciones-list');
+  var seccItems=document.getElementById('as-secciones-items');
+  var divider=document.getElementById('as-divider');
+  var existingSecs=(ALL||[]).filter(function(r){
+    return normalizarProyecto(r.proyecto)===normalizarProyecto(proyecto)&&r.mes===mesSel&&r.source===source;
+  });
+  if(existingSecs.length>0){
+    seccItems.innerHTML=existingSecs.map(function(r){
+      var safeS=r.seccion.replace(/'/g,"\'");
+      var safeC=(r.campana||'').replace(/'/g,"\'");
+      var safeAnio=(r.anio||source||'').toString();
+      return '<span style="display:inline-flex;align-items:center;gap:3px;background:var(--fondo);border:1px solid var(--borde);border-radius:6px;padding:3px 7px;font-size:12px;">'
+        +r.seccion
+        +'<button onclick="eliminarSecc(''+safeS+'',''+safeC+'',''+safeAnio+'')" '
+        +'title="Eliminar sección" '
+        +'style="background:none;border:none;cursor:pointer;color:var(--suave);font-size:13px;padding:0 0 0 4px;line-height:1;" '
+        +'onmouseover="this.style.color='#e53935'" onmouseout="this.style.color='var(--suave)'">✕</button>'
+        +'</span>';
+    }).join('');
+    seccList.style.display='block';
+    divider.style.display='block';
+  } else {
+    seccList.style.display='none';
+    divider.style.display='none';
+  }
+  // Populate section select dropdown
   var sel=document.getElementById('as-secc-input');
   var cats={};
   (SECCIONES_CATALOGO||[]).forEach(function(s){var c=s.categoria||'Otras';if(!cats[c])cats[c]=[];cats[c].push(s);});
@@ -3893,12 +3924,12 @@ function abrirAddSecc(proyecto,rawCampana,campNorm,source){
   var rl=document.getElementById('as-resp-list');
   var resps=[...new Set((ALL||[]).map(function(r){return r.responsable;}).filter(Boolean))];
   rl.innerHTML=resps.map(function(r){return '<option value="'+r+'">';}).join('');
-  document.getElementById('as-secc-input').value='';
   document.getElementById('as-resp-input').value='';
   var btn=document.getElementById('as-submit');
   btn.disabled=false; btn.textContent='Guardar';
   document.getElementById('as-overlay').classList.add('open');
 }
+
 function cerrarAddSecc(){
   document.getElementById('as-overlay').classList.remove('open');
   _addSeccData=null;
@@ -3930,6 +3961,29 @@ function guardarAddSecc(){
   }).catch(function(e){showToast('✗ '+e.message,'err');btn.disabled=false;btn.textContent='Guardar';});
 }
 
+
+function eliminarSecc(seccion, campana, anio){
+  var d = _addSeccData;
+  if(!d){ alert('Error: no hay proyecto seleccionado.'); return; }
+  if(!confirm('¿Eliminar la sección "'+seccion+'" de '+d.proyecto+'?')) return;
+  var ssId = d.source==='2026' ? S26 : S25;
+  var url  = d.source==='2026' ? APPS_SCRIPT_URL_2026 : APPS_SCRIPT_URL_2025;
+  fetch(url,{method:'POST',body:JSON.stringify({
+    action:'eliminarSeccion', ssId:ssId, sheetName:mesSel,
+    proyecto:d.proyecto, seccion:seccion, campana:campana, anio:parseInt(anio)
+  })}).then(function(r){return r.json();})
+  .then(function(res){
+    if(res.success){
+      showToast('✓ Sección "'+seccion+'" eliminada','ok');
+      // Refresh section list in modal
+      localStorage.removeItem('ceamar3_'+d.source+'_'+mesSel);
+      cerrarAddSecc();
+      setTimeout(function(){ cargar(); },600);
+    } else {
+      showToast('✗ '+(res.error||'Error al eliminar'),'err');
+    }
+  }).catch(function(e){ showToast('✗ '+e.message,'err'); });
+}
 
 function npMostrarSugerenciasModal(){
   var sugers = buildSugerencias().slice(0, 10);

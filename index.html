@@ -3713,73 +3713,40 @@ function normCamp(c){
 }
 
 function inferirSiguiente(proyecto){
+  var ESTAC_ORD = ['Verano','Otoño','Invierno','Primavera'];
+  var rows = (ALL||[]).filter(function(r){
+    return normalizarProyecto(r.proyecto)===normalizarProyecto(proyecto);
+  });
+  if(!rows.length) return null;
   // Recopilar pares únicos (anio, campaña), descartando strings de fecha
-  var seen = {};
-  ALL.forEach(function(r){
-    if(r.proyecto !== proyecto) return;
-    var c = normCamp(r.campanaNorm || r.campana || '');
-    var a = parseInt(r.source);
-    if(!c || isNaN(a)) return;
-    // Ignorar si parece una cadena de fecha (GMT, día de la semana, etc.)
-    if(c.indexOf('GMT')>=0 || /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s/.test(c)) return;
-    var k = a+'|'+c;
-    if(!seen[k]) seen[k] = {anio:a, campana:c};
+  var pares = [];
+  rows.forEach(function(r){
+    var cn = r.campanaNorm;
+    var anio = parseInt(r.anio||r.source||0);
+    if(!cn || cn==='Informe Integrado' || !anio) return;
+    var key = anio+'|'+cn;
+    if(!pares.some(function(p){return p.key===key;})){
+      pares.push({key:key, anio:anio, camp:cn});
+    }
   });
-  var lista = Object.keys(seen).map(function(k){ return seen[k]; });
-  if(!lista.length) return null;
-
-  // Detectar ciclo predominante
-  var usaS = lista.some(function(x){ return CICLO_S.indexOf(x.campana)>=0; });
-  var usaQ = lista.some(function(x){ return CICLO_Q.indexOf(x.campana)>=0; });
-  var ciclo = (usaS && !usaQ) ? CICLO_S : CICLO_Q;
-
-  // Filtrar sólo entradas reconocidas en el ciclo
-  var enCiclo = lista.filter(function(x){ return ciclo.indexOf(x.campana)>=0; });
-  if(!enCiclo.length) return null;
-
-  // Ordenar cronológicamente: año × longitud-ciclo + posición
-  enCiclo.sort(function(a,b){
-    var pa = a.anio * ciclo.length + ciclo.indexOf(a.campana);
-    var pb = b.anio * ciclo.length + ciclo.indexOf(b.campana);
-    return pa - pb;
+  if(!pares.length) return null;
+  // Ordenar cronológicamente
+  pares.sort(function(a,b){
+    var ai = ESTAC_ORD.indexOf(a.camp), bi = ESTAC_ORD.indexOf(b.camp);
+    if(a.anio !== b.anio) return a.anio - b.anio;
+    return ai - bi;
   });
-
-  // Calcular brechas entre registros consecutivos para inferir periodicidad
-  var gaps = [];
-  for(var i=1;i<enCiclo.length;i++){
-    var prev=enCiclo[i-1], curr=enCiclo[i];
-    var g = (curr.anio-prev.anio)*ciclo.length + (ciclo.indexOf(curr.campana)-ciclo.indexOf(prev.campana));
-    if(g>0 && g<=ciclo.length) gaps.push(g);
-  }
-  var periodo = 1;
-  if(gaps.length){
-    var freq={};
-    gaps.forEach(function(g){ freq[g]=(freq[g]||0)+1; });
-    var best=0;
-    Object.keys(freq).forEach(function(g){
-      if(freq[g]>best){ best=freq[g]; periodo=parseInt(g); }
-    });
-  }
-
-  var ultimo = enCiclo[enCiclo.length-1];
-  var lastPos = ultimo.anio * ciclo.length + ciclo.indexOf(ultimo.campana);
-  var nextPos  = lastPos + periodo;
-  var nextAnio = Math.floor(nextPos / ciclo.length);
-  var nextCamp = ciclo[nextPos % ciclo.length];
-
+  var ultimo = pares[pares.length-1];
+  var idx = ESTAC_ORD.indexOf(ultimo.camp);
+  if(idx === -1) return null;
+  var nextIdx = (idx+1)%4;
+  var nextAnio = nextIdx===0 ? ultimo.anio+1 : ultimo.anio;
+  var nextCamp = ESTAC_ORD[nextIdx];
   // Verificar si la siguiente ya existe en los datos
-  var yaExiste = ALL.some(function(r){
-    return r.proyecto===proyecto
-      && parseInt(r.source)===nextAnio
-      && normCamp(r.campanaNorm||r.campana||'')===nextCamp;
-  });
-
+  var yaExiste = pares.some(function(p){return p.anio===nextAnio && p.camp===nextCamp;});
   return {
-    proyecto: proyecto,
-    ciclo: ciclo===CICLO_S ? 'semestral' : 'trimestral',
-    periodo: periodo,
+    ultimaCampana: ultimo.camp,
     ultimaAnio: ultimo.anio,
-    ultimaCampana: ultimo.campana,
     siguienteAnio: nextAnio,
     siguienteCampana: nextCamp,
     yaExiste: yaExiste

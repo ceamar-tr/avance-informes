@@ -3213,15 +3213,17 @@ function renderEquipo(){
 
   fd.forEach(function(r){
     if(!r.responsable) return;
-    var canon = canonEquipo(r.responsable);
-    if(!byR[canon]) return; // ignorar si no está en RESP_CORE
-    byR[canon].t++;
-    var est = getEstado(r);
-    if(est==='completada')   byR[canon].comp++;
-    else if(est==='en_proceso') byR[canon].proc++;
-    else if(est==='asignada')   byR[canon].asig++;
-    else                        byR[canon].pend++;
-    byR[canon].rows.push(r);
+    r.responsable.split(/,|\sy\s/).forEach(function(nom){
+      var canon = canonEquipo(nom.trim());
+      if(!byR[canon]) return; // ignorar si no está en RESP_CORE
+      byR[canon].t++;
+      var est = getEstado(r);
+      if(est==='completada')   byR[canon].comp++;
+      else if(est==='en_proceso') byR[canon].proc++;
+      else if(est==='asignada')   byR[canon].asig++;
+      else                        byR[canon].pend++;
+      byR[canon].rows.push(r);
+    });
   });
 
   var cards = RESP_CORE.map(function(nombre, idx){

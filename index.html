@@ -3970,8 +3970,7 @@ function guardarAddSecc(){
 function eliminarSecc(seccion, campana, anio){
   var d = _addSeccData;
   if(!d){ alert('Error: no hay proyecto seleccionado.'); return; }
-  if(!confirm('¿Eliminar la sección "'+seccion+'" de '+d.proyecto+'?')) return;
-  var ssId = d.source==='2026' ? S26 : S25;
+    var ssId = d.source==='2026' ? S26 : S25;
   var url  = d.source==='2026' ? APPS_SCRIPT_URL_2026 : APPS_SCRIPT_URL_2025;
   fetch(url,{method:'POST',body:JSON.stringify({
     action:'eliminarSeccion', ssId:ssId, sheetName:mesSel,

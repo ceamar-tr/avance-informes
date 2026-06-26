@@ -1245,7 +1245,7 @@ function cargar(){
 function getProy(rows){
   var map = {};
   rows.forEach(function(r){
-    var k = r.proyecto;
+    var k = r.proyecto + '||' + (r.campanaNorm||r.campana||'');
     if(!map[k]) map[k]={proyecto:r.proyecto,campanas:[],campanaNorms:[],mes:r.mes,source:r.source,
                          secciones:[],resp:[],sma:[],tipo:r.tipo||'campaña',periodoIntegrado:r.periodoIntegrado||'',anio:r.anio||r.source};
     map[k].secciones.push(r);

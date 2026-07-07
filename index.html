@@ -867,6 +867,13 @@
       </div>
       <div id="np-periodo-wrap" style="display:none;">
         <div class="np-field">
+          <label>Componente integrado</label>
+          <select id="np-subtipo" style="width:100%;padding:7px;border-radius:8px;border:1px solid var(--borde);font-size:13px;font-family:'DM Sans',sans-serif;">
+            <option value="biota">🌿 Biota</option>
+            <option value="recursos_hidricos">💧 Recursos hídricos</option>
+          </select>
+        </div>
+        <div class="np-field">
           <label>Período integrado</label>
           <input id="np-periodo" type="text" placeholder="Ej: Invierno 2025 – Otoño 2026" style="width:100%;padding:7px;border-radius:8px;border:1px solid var(--borde);font-size:13px;font-family:'DM Sans',sans-serif;">
         </div>
@@ -1115,6 +1122,7 @@ function fetchSheet(id, sheetName, source){
       var iA    = findCol(['ano','year','anio'],      [],      8);
       var iTipo = findCol(['tipo'],                   [],     -1);
       var iPer  = findCol(['periodo','integrado'],    [],     -1);
+      var iSubt = findCol(['subtipo','componente'],   [],          -1);
 
       var rows=[], pA='', cA='', cnA='', aA='';
       json.table.rows.forEach(function(row){
@@ -1144,10 +1152,11 @@ function fetchSheet(id, sheetName, source){
               if(tipoR==='informe_integrado') cnA='Informe Integrado';
         if(cnA==='Informe Integrado') tipoR='informe_integrado';
               var perR=iPer>=0?String(cv(iPer)||'').trim():'';
+        var subtipoR=iSubt>=0?String(cv(iSubt)||'').trim():'';
               rows.push({proyecto:pA,campana:cA,campanaNorm:cnA,anio:aA||source,
                    seccion:seccion,responsable:responsable,completado:completado,
                    ubicacion:ubicacion,smaResp:smaResp,mes:sheetName,source:source,
-                   tipo:tipoR,periodoIntegrado:perR});
+                   tipo:tipoR,periodoIntegrado:perR,subtipoIntegrado:subtipoR});
       });
       setCached(cacheKey, rows);
       return rows;
@@ -1247,7 +1256,7 @@ function getProy(rows){
   rows.forEach(function(r){
     var k = r.proyecto + '||' + (r.campanaNorm||r.campana||'');
     if(!map[k]) map[k]={proyecto:r.proyecto,campanas:[],campanaNorms:[],mes:r.mes,source:r.source,
-                         secciones:[],resp:[],sma:[],tipo:r.tipo||'campaña',periodoIntegrado:r.periodoIntegrado||'',anio:r.anio||r.source};
+                         secciones:[],resp:[],sma:[],tipo:r.tipo||'campaña',periodoIntegrado:r.periodoIntegrado||'',subtipoIntegrado:r.subtipoIntegrado||'',anio:r.anio||r.source};
     map[k].secciones.push(r);
     if(r.campana&&map[k].campanas.indexOf(r.campana)<0) map[k].campanas.push(r.campana);
     var cn=r.campanaNorm||r.campana;
@@ -1264,7 +1273,7 @@ function getProy(rows){
     var pendientes= p.secciones.filter(function(s){ return getEstado(s)==='pendiente'; }).length;
     return Object.assign({},p,{
       campana: p.campanaNorms.map(function(c){return c?(c+' '+(p.anio||p.source)):c;}).join(' · '),
-      tipo: p.tipo||'campaña', periodoIntegrado: p.periodoIntegrado||'',
+      tipo: p.tipo||'campaña', periodoIntegrado: p.periodoIntegrado||'', subtipoIntegrado: p.subtipoIntegrado||'',
       tot:tot, comp:comp, pct:tot>0?Math.round(comp/tot*100):0, done:comp===tot,
       asignadas:asignadas, enProceso:enProceso, pendientesSecc:pendientes
     });
@@ -1428,6 +1437,7 @@ function getF(){
         (r.campanaNorm||r.campana||'').toLowerCase().indexOf(q)>=0||
         ((r.campanaNorm||r.campana||'').toLowerCase()+' '+r.source).indexOf(q)>=0||
         (r.periodoIntegrado||'').toLowerCase().indexOf(q)>=0||
+              (r.subtipoIntegrado||'').toLowerCase().indexOf(q)>=0||
         (r.tipo==='informe_integrado'?'informe integrado':'campaña').indexOf(q)>=0||
         (r.source||'').indexOf(q)>=0) &&
            (respFiltro===''||normStr(r.responsable).toLowerCase()===normStr(respFiltro).toLowerCase());
@@ -1680,7 +1690,7 @@ function render(){
         '<div class="proy-nombre">'+displayNombre(p.proyecto)+'</div>'+
         '<div class="proy-tipo-badge '+(p.tipo==='informe_integrado'?'proy-tipo-ii':'proy-tipo-camp')+'">'+
         (p.tipo==='informe_integrado'?'📋 Informe Integrado':'📄 Campaña')+'</div>'+
-        '<div class="proy-campana">'+(p.tipo==='informe_integrado'?(p.periodoIntegrado||'Período integrado'):(p.campana?p.campana+' · '+p.mes+' '+p.source:p.mes+' '+p.source))+'</div>'+
+        '<div class="proy-campana">'+(p.tipo==='informe_integrado'?((p.subtipoIntegrado==='biota'?'🌿 Biota':p.subtipoIntegrado==='recursos_hidricos'?'💧 Rec. hídricos':p.subtipoIntegrado||'')+(p.periodoIntegrado?((p.subtipoIntegrado?' · ':'')+p.periodoIntegrado):''))||'Integrado':(p.campana?p.campana+' · '+p.mes+' '+p.source:p.mes+' '+p.source))+'</div>'+
         '<div class="proy-prog-wrap">'+
           '<div class="proy-prog-bar"><div class="proy-prog-fill" style="width:'+p.pct+'%;background:'+color+';"></div></div>'+
           '<div class="proy-prog-pct">'+p.pct+'%</div>'+
@@ -4213,7 +4223,8 @@ function npGuardar(){
       proyecto:nombre, estacion:estacion, campana:campana,
       anio:parseInt(anioSel), secciones:secciones,
       tipo:(document.getElementById('np-tipo')||{value:'campaña'}).value,
-      periodoIntegrado:(document.getElementById('np-periodo')||{value:''}).value.trim()
+      periodoIntegrado:(document.getElementById('np-periodo')||{value:''}).value.trim(),
+        subtipoIntegrado:(document.getElementById('np-subtipo')||{value:'biota'}).value
     })
   })
   .then(function(r){ return r.json(); })

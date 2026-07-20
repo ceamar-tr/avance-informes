@@ -721,6 +721,60 @@
   .hscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
 }
 
+
+
+/* ---- MOBILE FIT v3 ---- */
+@media(max-width:768px){
+  /* Global overflow containment */
+  html,body{overflow-x:hidden;max-width:100vw;}
+  .wrap,
+  .wrap > *{max-width:100%;box-sizing:border-box;overflow-x:hidden;}
+
+  /* Controls row: wrap year buttons below month selector */
+  .controles{flex-wrap:wrap;gap:6px;}
+  .anio-btn,.anio-chip,[class*="anio"]{font-size:11px;padding:4px 8px;}
+
+  /* Month selector row: clip overflow */
+  .mes-controles,.mes-row,.mes-header{overflow-x:hidden;flex-wrap:wrap;gap:6px;}
+
+  /* Pending/urgentes cards: prevent overflow */
+  .pend-card,.urgente-card,.alerta-card{overflow:hidden;max-width:100%;}
+  .pend-header,.pend-titulo,.urgente-header{overflow:hidden;flex-wrap:wrap;gap:4px;}
+  .pend-badge,.secc-badge,.badge-count{flex-shrink:0;white-space:nowrap;}
+
+  /* Alert boxes */
+  .alertas > *{max-width:100%;overflow:hidden;}
+  .alerta{flex-wrap:wrap;}
+
+  /* Pending card title + badge row */
+  [class*="pend"][class*="card"] > *:first-child,
+  .pend-item-header{overflow:hidden;max-width:100%;display:flex;flex-wrap:wrap;gap:4px;}
+  .pend-item-header span,.pend-item-header strong{word-break:break-word;}
+
+  /* The "N secciones" badge that gets cut off */
+  .secc-count-badge,.n-secc,.chip-count{
+    flex-shrink:0;
+    white-space:nowrap;
+    font-size:10px;
+  }
+
+  /* Calendar: full width */
+  .cal-wrap,.calendario-wrap,.fc,.fc-view-harness{
+    max-width:100%;
+    overflow-x:hidden;
+  }
+  .fc-toolbar{flex-wrap:wrap;gap:4px;}
+  .fc-toolbar-title{font-size:14px;}
+  .fc td,.fc th{font-size:11px;padding:2px;}
+
+  /* Pendientes layout */
+  .urgentes-cal-layout{flex-direction:column!important;gap:12px;}
+  .cal-col,.pend-col{width:100%!important;max-width:100%!important;}
+
+  /* Tab overflow: allow scroll but clip viewport */
+  .tabs-wrap,.tabs-container{overflow-x:auto;max-width:100vw;}
+}
+
 </style>
 </head>
 <body>

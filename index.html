@@ -854,6 +854,53 @@
   /* 5. Avatares: borde blanco apilado */
   .av{border:2px solid #fff!important;box-shadow:0 0 0 0.5px rgba(0,0,0,0.10)!important;}
   .av-sm{border:2px solid #fff!important;box-shadow:0 0 0 0.5px rgba(0,0,0,0.10)!important;}
+
+  /* ════════════════════════════════════
+     DESIGN POLISH v4 — UI refinements
+     ════════════════════════════════════ */
+
+  /* 1. Mes selector: chip liviano en vez de botón pesado */
+  .mes-current{
+    background:#fff!important;
+    color:#0f172a!important;
+    border:0.5px solid #e2e8f0!important;
+    font-weight:600!important;
+    box-shadow:0 1px 3px rgba(0,0,0,0.06)!important;
+    border-radius:20px!important;
+  }
+  .mes-current:hover{border-color:#147a3b!important;color:#147a3b!important;}
+
+  /* 2. np-btn: botón primario con sombra de color */
+  .np-btn{
+    background:#147a3b!important;
+    font-weight:600!important;
+    letter-spacing:-0.01em!important;
+    box-shadow:0 1px 3px rgba(20,122,59,0.25),0 4px 12px rgba(20,122,59,0.18)!important;
+  }
+
+  /* 3. Filter labels: más pequeños y suaves */
+  .flabel{font-size:11px!important;color:#94a3b8!important;font-weight:500!important;letter-spacing:0.01em!important;}
+
+  /* 4. Filter chips: fondo neutro + activo en verde */
+  .fchip{background:#f8fafc!important;border:0.5px solid #e2e8f0!important;color:#64748b!important;font-size:12px!important;transition:all 0.15s ease!important;}
+  .fchip:hover{border-color:#147a3b!important;color:#147a3b!important;background:#f0fdf4!important;}
+  .fchip.on{background:#147a3b!important;color:#fff!important;border-color:#147a3b!important;box-shadow:0 1px 4px rgba(20,122,59,0.25)!important;}
+
+  /* 5. KPI labels: minúsculas, más suaves */
+  .klabel{text-transform:none!important;font-size:11px!important;font-weight:500!important;color:#94a3b8!important;letter-spacing:0.01em!important;}
+
+  /* 6. Activity log: timestamp contrastado vs texto */
+  .cal-act-hora{color:#94a3b8!important;font-size:11px!important;font-weight:500!important;flex-shrink:0!important;}
+  .cal-act-texto{color:#0f172a!important;font-size:12px!important;}
+
+  /* 7. Peticiones: card blanca con borde verde izquierdo */
+  .peticiones{
+    background:#fff!important;
+    border-radius:18px!important;
+    border:0.5px solid #e2e8f0!important;
+    border-left:3px solid #147a3b!important;
+    box-shadow:0 1px 3px rgba(0,0,0,0.04),0 4px 16px rgba(0,0,0,0.06)!important;
+  }
 </style>
 </head>
 <body>

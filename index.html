@@ -830,6 +830,30 @@
   .ktend.down{background:var(--rojo-s)!important;color:#c62828!important;}
   .ktend.eq{background:#f1f5f9!important;color:var(--suave)!important;}
   .secc-tag{font-size:12px!important;padding:4px 11px!important;}
+
+  /* ════════════════════════════════════
+     DESIGN POLISH v3 — 5 mejoras UI
+     ════════════════════════════════════ */
+
+  /* 1. Barra de progreso: más gruesa + gradiente */
+  .proy-prog-bar{height:6px!important;border-radius:20px!important;background:#e9edf2!important;}
+  .proy-prog-fill{border-radius:20px!important;background:linear-gradient(90deg,#147a3b 0%,#22c55e 100%)!important;}
+
+  /* 2. Secciones: completadas verde suave, pendientes neutro */
+  .secc-tag.secc-ok{background:#f0fdf4!important;color:#15803d!important;border:0.5px solid #bbf7d0!important;}
+  .secc-tag.secc-pend{background:#f8fafc!important;color:#94a3b8!important;border:0.5px solid #e2e8f0!important;}
+
+  /* 3. Card hover: elevación suave */
+  .proy-card{transition:transform 0.18s ease,box-shadow 0.18s ease!important;}
+  .proy-card:hover{transform:translateY(-3px)!important;box-shadow:0 4px 8px rgba(0,0,0,0.06),0 14px 32px rgba(0,0,0,0.10)!important;}
+
+  /* 4. Tipo badges: colores según tipo */
+  .proy-tipo-camp{color:#166534!important;background:#f0fdf4!important;border:0.5px solid #bbf7d0!important;font-weight:600!important;}
+  .proy-tipo-ii{color:#1e40af!important;background:#eff6ff!important;border:0.5px solid #bfdbfe!important;font-weight:600!important;}
+
+  /* 5. Avatares: borde blanco apilado */
+  .av{border:2px solid #fff!important;box-shadow:0 0 0 0.5px rgba(0,0,0,0.10)!important;}
+  .av-sm{border:2px solid #fff!important;box-shadow:0 0 0 0.5px rgba(0,0,0,0.10)!important;}
 </style>
 </head>
 <body>

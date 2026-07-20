@@ -1640,6 +1640,8 @@ function render(){
     var pendCount = p.secciones.filter(function(s){ return !s.completado; }).length;
     var seccTags=p.secciones.map(function(s){
       var safeS=s.seccion.replace(/'/g,"\\'");
+        var safeSource=String(s.source||'').replace(/'/g,"\\'");
+        var safeMes=String(s.mes||'').replace(/'/g,"\\'");
       var safeProy=p.proyecto.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
       var est = getEstado(s);
       var tagCls = est==='completada'?'secc-ok':est==='en_proceso'?'secc-tag':est==='asignada'?'secc-tag':'secc-pend';
@@ -1656,7 +1658,7 @@ function render(){
       }
       return '<span class="secc-tag '+tagCls+'" '
         +'title="'+estTitle+'" '
-        +'onclick="event.stopPropagation();mostrarMenuAccion(event,\''+safeProy+'\',\''+safeS+'\')" '
+        +'onclick="event.stopPropagation();mostrarMenuAccion(event,\''+safeProy+'\',\''+safeS+'\'\,\''+safeSource+'\'\,\''+safeMes+'\')" '
         +'style="cursor:pointer;display:inline-flex;align-items:center;gap:2px;'+(est==='asignada'?'border:1px solid var(--azul-c);':est==='en_proceso'?'border:1px solid var(--amber);':'')+'">'
         +estIcon+' '+s.seccion+respTag+'</span>';
     }).join('');
@@ -2018,7 +2020,7 @@ function ciclarEstado(ev, proyecto, seccion){
   // Busca por proyecto+seccion sin requerir mesSel, para que funcione aunque
   // el proyecto pertenezca a un mes distinto al actualmente seleccionado
   for(var i=0; i<ALL.length; i++){
-    if(ALL[i].proyecto===proyecto && ALL[i].seccion===seccion && ALL[i].source===anioSel){
+    if(ALL[i].proyecto===proyecto && ALL[i].seccion===seccion && ALL[i].source===anioSel && (!mes||ALL[i].mes===mes)){
       r = ALL[i]; break;
     }
   }
@@ -2140,7 +2142,7 @@ function mostrarPickerResponsable(ancla, source, mes, proyecto, seccion){
 }
 
 // ─── MENÚ RÁPIDO DE ACCIONES POR SECCIÓN ─────────────────────
-function mostrarMenuAccion(ev, proyecto, seccion){
+function mostrarMenuAccion(ev, proyecto, seccion, source, mes){
   if(ev) ev.stopPropagation();
   var r = null;
   for(var i=0;i<ALL.length;i++){

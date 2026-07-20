@@ -608,7 +608,7 @@
 
 
   /* Mob nav hidden globally */
-  #mob-nav{display:none;}
+  
   #mob-hamburger{display:none;}
 
 /* =============================================
@@ -634,18 +634,18 @@
   .header [onclick="forzarRecarga()"]{display:none!important;}
   .header div[style*="rgba(255,255,255,0.12)"]{display:none!important;}
 
-  #mob-nav{position:fixed;inset:0;z-index:9999;display:none;flex-direction:column;}
-  #mob-nav.open{display:flex;}
-  #mob-nav-bg{position:absolute;inset:0;background:rgba(0,0,0,.48);}
-  #mob-nav-panel{position:absolute;top:0;right:0;width:80vw;max-width:300px;height:100%;background:var(--fondo);box-shadow:-4px 0 24px rgba(0,0,0,.28);display:flex;flex-direction:column;overflow-y:auto;z-index:1;}
-  #mob-nav-head{background:linear-gradient(135deg,var(--verde) 0%,var(--azul) 100%);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;color:#fff;flex-shrink:0;}
-  #mob-nav-head h3{margin:0;font-size:14px;font-weight:700;}
-  #mob-nav-close{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:2px 6px;line-height:1;}
-  #mob-nav-body{padding:16px;display:flex;flex-direction:column;gap:16px;}
-  .mnav-section{display:flex;flex-direction:column;gap:8px;}
-  .mnav-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--texto-sub);padding-bottom:6px;border-bottom:1px solid var(--borde);}
-  .mnav-btn{width:100%;text-align:left;padding:10px 14px;border-radius:8px;border:1px solid var(--borde);background:var(--card);color:var(--texto);font-size:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:8px;}
-  .mnav-btn:active{background:var(--hover);}
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 
   .wrap{padding:8px;max-width:100%;overflow-x:hidden;}
   .syncbar{font-size:11px;padding:5px 10px;flex-wrap:wrap;gap:4px;}
@@ -750,32 +750,9 @@
     </div>
     <button onclick="forzarRecarga()" title="Recargar datos desde Google Sheets" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:white;border-radius:20px;padding:4px 12px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;">↻</button>
     <button onclick="toggleDark()" id="dark-btn" title="Modo oscuro" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:white;border-radius:20px;padding:4px 12px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;">🌙</button>
-  
-    <button id="mob-hamburger" onclick="mobNavToggle()" title="Menu" style="display:none;">☰</button>
 </div>
 </div>
 
-<div id="mob-nav" style="display:none;">
-  <div id="mob-nav-bg" onclick="mobNavToggle()"></div>
-  <div id="mob-nav-panel">
-    <div id="mob-nav-head">
-      <h3>Opciones</h3>
-      <button id="mob-nav-close" onclick="mobNavToggle()">&#x2715;</button>
-    </div>
-    <div id="mob-nav-body">
-      <div class="mnav-section">
-        <div class="mnav-title">Pantalla</div>
-        <button class="mnav-btn" onclick="toggleDark();mobNavToggle();">🌙 Modo oscuro / claro</button>
-        <button class="mnav-btn" onclick="cambiarFuente(-1);mobNavToggle();">A&#8722; Letra menor</button>
-        <button class="mnav-btn" onclick="cambiarFuente(1);mobNavToggle();">A+ Letra mayor</button>
-      </div>
-      <div class="mnav-section">
-        <div class="mnav-title">Datos</div>
-        <button class="mnav-btn" onclick="forzarRecarga();mobNavToggle();">🔄 Recargar desde Sheets</button>
-      </div>
-    </div>
-  </div>
-</div>
 <div class="wrap">
   <div class="syncbar loading" id="sbar">
     <span id="stxt">Conectando con Google Sheets...</span>
@@ -4417,7 +4394,6 @@ actualizarDias();
 buildRespChips();
 cargar();
 
-function mobNavToggle(){var nav=document.getElementById('mob-nav');if(!nav)return;var isOpen=nav.style.display==='flex';nav.style.cssText=isOpen?'display:none':'display:flex;position:fixed;inset:0;z-index:9999;flex-direction:column';document.body.style.overflow=isOpen?'':'hidden';}
 
 </script>
 </body>

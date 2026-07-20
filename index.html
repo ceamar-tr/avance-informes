@@ -755,7 +755,7 @@
 </div>
 </div>
 
-<div id="mob-nav">
+<div id="mob-nav" style="display:none;">
   <div id="mob-nav-bg" onclick="mobNavToggle()"></div>
   <div id="mob-nav-panel">
     <div id="mob-nav-head">
@@ -4417,12 +4417,7 @@ actualizarDias();
 buildRespChips();
 cargar();
 
-function mobNavToggle(){
-  var nav=document.getElementById('mob-nav');
-  if(!nav)return;
-  nav.classList.toggle('open');
-  document.body.style.overflow=nav.classList.contains('open')?'hidden':'';
-}
+function mobNavToggle(){var nav=document.getElementById('mob-nav');if(!nav)return;var isOpen=nav.style.display==='flex';nav.style.cssText=isOpen?'display:none':'display:flex;position:fixed;inset:0;z-index:9999;flex-direction:column';document.body.style.overflow=isOpen?'':'hidden';}
 
 </script>
 </body>

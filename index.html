@@ -901,6 +901,14 @@
     border-left:3px solid #147a3b!important;
     box-shadow:0 1px 3px rgba(0,0,0,0.04),0 4px 16px rgba(0,0,0,0.06)!important;
   }
+
+  /* ── NOTA + DIAS en acción menu ── */
+  #accion-menu-float > div { min-width: 264px !important; }
+  .ceamar-inj textarea:focus { box-shadow: 0 0 0 2px rgba(20,122,59,0.15); }
+  @keyframes ceamarUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
 </style>
 </head>
 <body>
@@ -4576,5 +4584,113 @@ cargar();
 
 
 </script>
+<script>
+/* ══════════════════════════════════════════════════════
+   FEATURE: fechaInicio · nota · banner sin tarea
+   ══════════════════════════════════════════════════════ */
+(function () {
+  function ceamarKey(s, m, p, sec) { return s + '|' + m + '|' + p + '|' + sec; }
+
+  /* 1 ─ Wrap setEstado: guarda fechaInicio cuando entra en proceso */
+  var _oSE = window.setEstado;
+  if (_oSE) {
+    window.setEstado = function (source, mes, proyecto, seccion, nuevoEstado) {
+      var k = ceamarKey(source, mes, proyecto, seccion);
+      var hadFecha = ESTADOS_STORE[k] && ESTADOS_STORE[k].fechaInicio;
+      _oSE.apply(this, arguments);
+      if (!ESTADOS_STORE[k]) ESTADOS_STORE[k] = {};
+      if ((nuevoEstado === 'enProceso' || nuevoEstado === 'en_proceso' || nuevoEstado === 'asignada') && !hadFecha) {
+        ESTADOS_STORE[k].fechaInicio = new Date().toISOString();
+        try { localStorage.setItem('ceamar_estados', JSON.stringify(ESTADOS_STORE)); } catch (e) {}
+      } else if (nuevoEstado === 'pendiente') {
+        delete ESTADOS_STORE[k].fechaInicio;
+        try { localStorage.setItem('ceamar_estados', JSON.stringify(ESTADOS_STORE)); } catch (e) {}
+      }
+    };
+  }
+
+  /* 2 ─ guardarNota */
+  window.guardarNota = function (source, mes, proyecto, seccion, nota) {
+    var k = ceamarKey(source, mes, proyecto, seccion);
+    if (!ESTADOS_STORE[k]) ESTADOS_STORE[k] = {};
+    ESTADOS_STORE[k].nota = nota.trim();
+    try { localStorage.setItem('ceamar_estados', JSON.stringify(ESTADOS_STORE)); } catch (e) {}
+  };
+
+  /* 3 ─ Wrap mostrarMenuAccion: inyecta dias + nota */
+  var _oMA = window.mostrarMenuAccion;
+  if (_oMA) {
+    window.mostrarMenuAccion = function (proyecto, seccion, source, mes) {
+      _oMA.apply(this, arguments);
+      setTimeout(function () {
+        var ov = document.getElementById('accion-menu-float');
+        if (!ov) return;
+        var card = ov.firstElementChild;
+        if (!card || card.querySelector('.ceamar-inj')) return;
+        var est = ESTADOS_STORE[ceamarKey(source, mes, proyecto, seccion)] || {};
+
+        var inj = document.createElement('div');
+        inj.className = 'ceamar-inj';
+        inj.style.cssText = 'margin-top:12px;padding-top:12px;border-top:0.5px solid #e2e8f0;display:flex;flex-direction:column;gap:8px;';
+
+        /* Días en proceso badge */
+        if (est.fechaInicio && est.completado !== true) {
+          var dias = Math.floor((Date.now() - new Date(est.fechaInicio)) / 86400000);
+          var bg = dias < 4 ? '#fef9c3' : dias < 8 ? '#ffedd5' : '#fee2e2';
+          var fg = dias < 4 ? '#854d0e' : dias < 8 ? '#9a3412' : '#991b1b';
+          var dEl = document.createElement('div');
+          dEl.innerHTML = '<span style="display:inline-flex;align-items:center;gap:4px;background:' + bg + ';color:' + fg + ';border-radius:20px;padding:2px 10px;font-size:11px;font-weight:600;">\u23F1 ' + dias + (dias === 1 ? ' d\u00EDa' : ' d\u00EDas') + ' en proceso</span>';
+          inj.appendChild(dEl);
+        }
+
+        /* Nota label */
+        var lbl = document.createElement('div');
+        lbl.style.cssText = 'font-size:11px;color:#94a3b8;font-weight:500;';
+        lbl.textContent = 'Nota de seguimiento';
+        inj.appendChild(lbl);
+
+        /* Nota textarea */
+        var ta = document.createElement('textarea');
+        ta.value = est.nota || '';
+        ta.placeholder = 'ej. enviado 12 jul, esperando lab…';
+        ta.rows = 3;
+        ta.style.cssText = 'width:100%;box-sizing:border-box;border:0.5px solid #e2e8f0;border-radius:8px;padding:6px 8px;font-size:12px;font-family:inherit;resize:vertical;outline:none;color:#0f172a;background:#f8fafc;transition:border-color 0.15s,background 0.15s;';
+        ta.addEventListener('focus', function () { this.style.borderColor = '#147a3b'; this.style.background = '#fff'; });
+        ta.addEventListener('blur', function () {
+          this.style.borderColor = '#e2e8f0'; this.style.background = '#f8fafc';
+          window.guardarNota(source, mes, proyecto, seccion, this.value);
+        });
+        inj.appendChild(ta);
+        card.appendChild(inj);
+      }, 20);
+    };
+  }
+
+  /* 4 ─ Banner: usuario sin tareas asignadas */
+  function checkBanner() {
+    var u = localStorage.getItem('ceamar_usuario_activo');
+    if (!u || sessionStorage.getItem('ceamar_b_ok')) return;
+    var tieneAsignada = Object.keys(ESTADOS_STORE).some(function (k) {
+      var e = ESTADOS_STORE[k];
+      if (!e || !e.responsable) return false;
+      return e.responsable.toLowerCase().split(/\s*y\s*|,\s*/).some(function (r) {
+        return r.trim() === u.toLowerCase();
+      });
+    });
+    if (tieneAsignada) return;
+    var b = document.createElement('div');
+    b.id = 'ceamar-b';
+    b.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9998;background:#fff;border:0.5px solid #bbf7d0;border-left:3px solid #147a3b;border-radius:14px;box-shadow:0 4px 24px rgba(0,0,0,0.10);padding:14px 16px;max-width:284px;display:flex;flex-direction:column;gap:8px;animation:ceamarUp 0.3s ease;';
+    b.innerHTML =
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">' +
+        '<div><p style="margin:0;font-size:13px;font-weight:600;color:#0f172a;">Sin tareas asignadas</p>' +
+        '<p style="margin:4px 0 0;font-size:12px;color:#64748b;">No tienes secciones asignadas este mes.</p></div>' +
+        '<button onclick="sessionStorage.setItem('ceamar_b_ok','1');document.getElementById('ceamar-b').remove();" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:20px;line-height:1;padding:0;flex-shrink:0;">×</button>' +
+      '</div>' +
+      '<button onclick="sessionStorage.setItem('ceamar_b_ok','1');document.getElementById('ceamar-b').remove();" style="background:#f0fdf4;color:#147a3b;border:0.5px solid #bbf7d0;border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;align-self:flex-start;">Ver tareas disponibles</button>';
+    document.body.appendChild(b);
+  }
+  setTimeout(checkBanner, 3500);
+})();
+</script>
 </body>
-</html>

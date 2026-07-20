@@ -790,6 +790,38 @@
     .cal-act-entry,.cal-act-texto,.cal-act-list{max-width:100%!important;overflow:hidden!important;}
     .cal-act-texto{text-overflow:ellipsis!important;white-space:nowrap!important;}
   }
+
+  /* ════════════════════════════════════════════
+     DESIGN REFRESH v1 — más moderno y limpio
+     ════════════════════════════════════════════ */
+  :root {
+    --verde:   #147a3b;
+    --azul:    #0f4c75;
+    --bg:      #f8fafc;
+    --borde:   #e2e8f0;
+    --r:       16px;
+    --sombra:  0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.06);
+    --suave:   #64748b;
+    --texto:   #0f172a;
+    --verde-s: #f0fdf4;
+    --rojo-s:  #fef2f2;
+    --azul-s:  #eff6ff;
+  }
+  .header { background: linear-gradient(135deg,#0f4c75 0%,#147a3b 100%) !important; }
+  .tabs { background:#eaeff5!important; border-radius:14px!important; padding:3px!important; gap:2px!important; border:none!important; box-shadow:none!important; }
+  .tab { border-radius:11px!important; letter-spacing:-0.01em; transition:all 0.18s ease; }
+  .tab.active,.tab.on { background:#fff!important; color:#0f172a!important; box-shadow:0 1px 4px rgba(0,0,0,0.10),0 0 0 0.5px rgba(0,0,0,0.06)!important; }
+  .tab:not(.active):not(.on) { color:#64748b!important; background:transparent!important; }
+  .proy-card,.pend-card,.urgentes-wrap { border-radius:20px!important; box-shadow:0 1px 3px rgba(0,0,0,0.04),0 4px 16px rgba(0,0,0,0.06)!important; border:0.5px solid #e2e8f0!important; }
+  .kpi { border-radius:18px!important; box-shadow:0 1px 3px rgba(0,0,0,0.04),0 4px 16px rgba(0,0,0,0.06)!important; }
+  .proy-nombre { letter-spacing:-0.025em!important; font-size:15px!important; }
+  .kval { letter-spacing:-0.04em!important; }
+  .klabel { font-size:10px!important; letter-spacing:0.06em!important; }
+  .proy-logo-col { background:#fff!important; border:0.5px solid #e2e8f0!important; border-radius:14px!important; padding:5px 8px!important; box-shadow:none!important; }
+  .proy-logo-col img { object-fit:contain!important; }
+  .secc-tag { background:#f8fafc!important; border:0.5px solid #e2e8f0!important; border-radius:10px!important; }
+  .syncbar { border-radius:12px!important; border:0.5px solid #e2e8f0!important; }
+  .proy-tipo-badge { border-radius:8px!important; font-size:11px!important; letter-spacing:-0.01em; }
 </style>
 </head>
 <body>

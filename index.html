@@ -605,6 +605,117 @@
   .suger-item-meta{font-size:9px;color:var(--suave);margin-top:1px;}
   .suger-item-from{font-size:9px;color:var(--suave);opacity:.7;}
   .suger-item:hover .suger-item-from{opacity:1;}
+
+/* =============================================
+   MOBILE RESPONSIVE — ≤768px
+   ============================================= */
+@media(max-width:768px){
+  *{box-sizing:border-box;}
+  body{overflow-x:hidden;}
+
+  .header{padding:9px 12px;flex-wrap:nowrap;gap:6px;}
+  .header-left{gap:6px;min-width:0;flex:1 1 auto;overflow:hidden;}
+  .logo-wrap img{height:32px!important;}
+  .htitle{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;}
+  .hsub{display:none;}
+  .hright{gap:3px;}
+  .dias-badge{display:none!important;}
+  .hbadge{display:none!important;}
+
+  #mob-hamburger{display:flex!important;align-items:center;justify-content:center;width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,.18);border:none;color:#fff;cursor:pointer;flex-shrink:0;font-size:19px;line-height:1;}
+
+  #dark-btn{display:none!important;}
+  .header [onclick^="cambiarFuente"]{display:none!important;}
+  .header [onclick="forzarRecarga()"]{display:none!important;}
+  .header div[style*="rgba(255,255,255,0.12)"]{display:none!important;}
+
+  #mob-nav{position:fixed;inset:0;z-index:9999;display:none;flex-direction:column;}
+  #mob-nav.open{display:flex;}
+  #mob-nav-bg{position:absolute;inset:0;background:rgba(0,0,0,.48);}
+  #mob-nav-panel{position:absolute;top:0;right:0;width:80vw;max-width:300px;height:100%;background:var(--fondo);box-shadow:-4px 0 24px rgba(0,0,0,.28);display:flex;flex-direction:column;overflow-y:auto;z-index:1;}
+  #mob-nav-head{background:linear-gradient(135deg,var(--verde) 0%,var(--azul) 100%);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;color:#fff;flex-shrink:0;}
+  #mob-nav-head h3{margin:0;font-size:14px;font-weight:700;}
+  #mob-nav-close{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:2px 6px;line-height:1;}
+  #mob-nav-body{padding:16px;display:flex;flex-direction:column;gap:16px;}
+  .mnav-section{display:flex;flex-direction:column;gap:8px;}
+  .mnav-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--texto-sub);padding-bottom:6px;border-bottom:1px solid var(--borde);}
+  .mnav-btn{width:100%;text-align:left;padding:10px 14px;border-radius:8px;border:1px solid var(--borde);background:var(--card);color:var(--texto);font-size:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:8px;}
+  .mnav-btn:active{background:var(--hover);}
+
+  .wrap{padding:8px;max-width:100%;overflow-x:hidden;}
+  .syncbar{font-size:11px;padding:5px 10px;flex-wrap:wrap;gap:4px;}
+
+  .tabs{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:3px;padding-bottom:2px;scrollbar-width:none;flex-wrap:nowrap;}
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab,.tc{font-size:11px;padding:6px 11px;white-space:nowrap;flex-shrink:0;}
+
+  .controles{flex-wrap:wrap;gap:6px;padding:8px 0;}
+  .search-wrap{flex:1 1 100%;min-width:0;order:-1;}
+  .search-input{width:100%;font-size:14px!important;}
+  .fchip{font-size:11px;padding:5px 9px;}
+  .flabel{font-size:11px;}
+  .vista-toggle{gap:3px;}
+  .vista-btn{font-size:11px;padding:5px 10px;}
+
+  .mes-wrap{width:100%;}
+  .mes-current{font-size:12px;padding:7px 11px;}
+  .mes-dropdown{width:100%!important;left:0!important;right:auto!important;}
+
+  .kgrid{grid-template-columns:repeat(2,1fr)!important;gap:8px;}
+  .kpi{padding:10px 12px;}
+  .kval{font-size:20px;}
+  .klabel{font-size:10px;}
+  .ksub{font-size:9px;}
+
+  .proyectos-grid{grid-template-columns:1fr!important;gap:8px;}
+  .proy-card{border-radius:10px;}
+  .proy-card-body{padding:11px 12px;}
+  .proy-nombre{font-size:13px;}
+  .proy-campana,.proy-tipo{font-size:10px;}
+  .proy-secciones{gap:5px;margin:8px 0;}
+  .secc-tag{font-size:11px;padding:5px 9px;min-height:32px;touch-action:manipulation;}
+  .proy-footer{gap:5px;flex-wrap:wrap;}
+  .proy-footer button,.proy-btn{font-size:11px;padding:6px 10px;min-height:32px;touch-action:manipulation;}
+  .proy-prog-bar-wrap{height:5px;}
+
+  .cli-filter-wrap,.cliente-chips{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap;gap:5px;padding-bottom:3px;}
+  .cli-filter-chip{flex-shrink:0;font-size:11px;padding:5px 9px;}
+
+  .side-panel{width:100%!important;max-width:100%!important;right:0!important;border-radius:16px 16px 0 0!important;bottom:0!important;top:auto!important;max-height:90vh!important;overflow-y:auto!important;}
+  .np-form,.side-panel form{padding:14px!important;}
+  .np-grid{grid-template-columns:1fr!important;}
+  .np-secc-grid{grid-template-columns:repeat(2,1fr)!important;}
+  .np-resp-grid{grid-template-columns:1fr!important;}
+  .np-field label{font-size:12px;}
+  .np-field input,.np-field select,.np-field textarea{font-size:14px!important;}
+  .np-footer{flex-direction:column;gap:8px;padding:12px 14px;}
+  .np-footer button{width:100%;justify-content:center;min-height:42px;font-size:13px;}
+
+  .overlay{align-items:flex-end!important;padding:0!important;}
+  .overlay > div{width:100%!important;max-width:100%!important;border-radius:16px 16px 0 0!important;max-height:90vh!important;overflow-y:auto!important;}
+
+  .accion-menu,.action-menu{min-width:220px;font-size:13px;border-radius:12px;}
+  .accion-menu button,.action-menu button{padding:13px 16px;min-height:44px;touch-action:manipulation;}
+
+  .secc-detail-panel{width:100%!important;max-width:100%!important;border-radius:16px 16px 0 0!important;}
+
+  .vista-anual-wrap,.anual-table-wrap,.tabla-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+
+  .urgentes-cal-layout,.filtros-cal-layout{flex-direction:column!important;gap:10px!important;}
+  .cal-peticiones-col,.cal-sidebar{min-width:0!important;width:100%!important;}
+
+  .equipo-grid{grid-template-columns:1fr!important;}
+  .pend-grid{grid-template-columns:1fr!important;}
+
+  .toast{max-width:calc(100vw - 32px);left:16px!important;right:16px!important;bottom:16px!important;font-size:13px;}
+
+  .grid-toolbar{flex-wrap:wrap;gap:6px;}
+  .sort-chip{font-size:11px;padding:5px 10px;}
+
+  input,select,textarea{font-size:16px!important;}
+  .hscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+}
+
 </style>
 </head>
 <body>
@@ -634,6 +745,30 @@
     </div>
     <button onclick="forzarRecarga()" title="Recargar datos desde Google Sheets" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:white;border-radius:20px;padding:4px 12px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;">↻</button>
     <button onclick="toggleDark()" id="dark-btn" title="Modo oscuro" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:white;border-radius:20px;padding:4px 12px;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;">🌙</button>
+  
+    <button id="mob-hamburger" onclick="mobNavToggle()" title="Menu" style="display:none;">☰</button>
+</div>
+</div>
+
+<div id="mob-nav">
+  <div id="mob-nav-bg" onclick="mobNavToggle()"></div>
+  <div id="mob-nav-panel">
+    <div id="mob-nav-head">
+      <h3>Opciones</h3>
+      <button id="mob-nav-close" onclick="mobNavToggle()">&#x2715;</button>
+    </div>
+    <div id="mob-nav-body">
+      <div class="mnav-section">
+        <div class="mnav-title">Pantalla</div>
+        <button class="mnav-btn" onclick="toggleDark();mobNavToggle();">🌙 Modo oscuro / claro</button>
+        <button class="mnav-btn" onclick="cambiarFuente(-1);mobNavToggle();">A&#8722; Letra menor</button>
+        <button class="mnav-btn" onclick="cambiarFuente(1);mobNavToggle();">A+ Letra mayor</button>
+      </div>
+      <div class="mnav-section">
+        <div class="mnav-title">Datos</div>
+        <button class="mnav-btn" onclick="forzarRecarga();mobNavToggle();">🔄 Recargar desde Sheets</button>
+      </div>
+    </div>
   </div>
 </div>
 <div class="wrap">
@@ -4276,6 +4411,14 @@ function exportarCSV(){
 actualizarDias();
 buildRespChips();
 cargar();
+
+function mobNavToggle(){
+  var nav=document.getElementById('mob-nav');
+  if(!nav)return;
+  nav.classList.toggle('open');
+  document.body.style.overflow=nav.classList.contains('open')?'hidden':'';
+}
+
 </script>
 </body>
 </html>

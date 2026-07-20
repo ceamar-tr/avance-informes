@@ -775,6 +775,21 @@
   .tabs-wrap,.tabs-container{overflow-x:auto;max-width:100vw;}
 }
 
+
+  /* MOBILE FIX v4: targeted overflow fixes */
+  @media(max-width:768px){
+    /* np-btn ("+ Nuevo proyecto") overflows because .tc has white-space:nowrap */
+    /* Making .tc wrap so the button goes to a new line instead of overflowing right */
+    .tc{white-space:normal!important;overflow-x:hidden!important;}
+
+    /* urgentes-titulo: "4 secciones" badge cut off because flex-wrap:nowrap */
+    .urgentes-titulo{flex-wrap:wrap!important;gap:4px!important;}
+    .urgentes-titulo > span{flex-shrink:1!important;min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important;}
+
+    /* Calendar activity text overflow */
+    .cal-act-entry,.cal-act-texto,.cal-act-list{max-width:100%!important;overflow:hidden!important;}
+    .cal-act-texto{text-overflow:ellipsis!important;white-space:nowrap!important;}
+  }
 </style>
 </head>
 <body>

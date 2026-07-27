@@ -2451,7 +2451,7 @@ function mostrarMenuAccion(ev, proyecto, seccion, source, mes){
   if(ev) ev.stopPropagation();
   var r = null;
   for(var i=0;i<ALL.length;i++){
-    if(ALL[i].proyecto===proyecto && ALL[i].seccion===seccion && ALL[i].source===anioSel){
+    if(ALL[i].proyecto===proyecto && ALL[i].seccion===seccion && ALL[i].source===anioSel && ALL[i].mes===mes){
       r = ALL[i]; break;
     }
   }
@@ -2585,7 +2585,7 @@ function mostrarMenuSMA(ev, proyecto, seccion){
   if(ev) ev.stopPropagation();
   var r = null;
   for(var i=0;i<ALL.length;i++){
-    if(ALL[i].proyecto===proyecto && ALL[i].seccion===seccion && ALL[i].source===anioSel){
+    if(ALL[i].proyecto===proyecto && ALL[i].seccion===seccion && ALL[i].mes===mesSel && ALL[i].source===anioSel){
       r = ALL[i]; break;
     }
   }

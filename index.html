@@ -1441,7 +1441,7 @@ function fetchSheet(id, sheetName, source){
           return c.v==null?'':c.v;
         }
         var proyecto    = String(cv(iP) ||'').trim();
-        var campana     = String(cv(iC) ||'').trim();
+        var rawC=cv(iC);var campana=rawC instanceof Date?['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][rawC.getMonth()]+' '+rawC.getFullYear():String(rawC||'').trim();
         var seccion     = String(cv(iS) ||'').trim();
         var responsable = String(cv(iR) ||'').trim();
         var completado  = (cv(iDo)===true||String(cv(iDo)).toUpperCase()==='TRUE');
@@ -2993,7 +2993,7 @@ function renderBusqHist(){
     var k = r.proyecto;
     if(!clienteMap[cliente][k]) clienteMap[cliente][k] = {};
     var mk = r.source + '|' + r.mes + '|' + (r.campanaNorm||r.campana||'');
-    if(!clienteMap[cliente][k][mk]) clienteMap[cliente][k][mk] = {anio:r.anio||r.source, mes:r.mes, campana:r.campanaNorm||r.campana||'', secciones:[]};
+    if(!clienteMap[cliente][k][mk]) clienteMap[cliente][k][mk] = {anio:r.anio||r.source, mes:r.mes, campana:r.campanaNorm?(r.campanaNorm+(r.anio&&r.anio!==r.source?' '+r.anio:'')):r.campana||'', secciones:[]};
     clienteMap[cliente][k][mk].secciones.push(r);
   });
 

@@ -1998,7 +1998,7 @@ function render(){
         '<div class="proy-nombre">'+displayNombre(p.proyecto)+'</div>'+
         '<div class="proy-tipo-badge '+(p.tipo==='informe_integrado'?'proy-tipo-ii':'proy-tipo-camp')+'">'+
         (p.tipo==='informe_integrado'?'📋 Informe Integrado':'📄 Campaña')+'</div>'+
-        '<div class="proy-campana">'+(p.tipo==='informe_integrado'?p.mes+' '+p.source+' · '+(((p.subtipoIntegrado==='biota'?'🌿 Biota':p.subtipoIntegrado==='recursos_hidricos'?'💧 Rec. hídricos':p.subtipoIntegrado||'')+(p.periodoIntegrado?((p.subtipoIntegrado?' · ':'')+p.periodoIntegrado):''))||'Integrado'):(p.mes+' '+p.source+(p.campanas&&p.campanas.length?' · '+p.campanas.map(function(c){return c.replace(new RegExp('\\s*'+p.source+'$'),'').trim();}).filter(Boolean).join(' · '):'')))+'</div>'+
+        '<div class="proy-campana">'+(p.tipo==='informe_integrado'?p.mes+' '+p.source+' · '+(((p.subtipoIntegrado==='biota'?'🌿 Biota':p.subtipoIntegrado==='recursos_hidricos'?'💧 Rec. hídricos':p.subtipoIntegrado||'')+(p.periodoIntegrado?((p.subtipoIntegrado?' · ':'')+p.periodoIntegrado):''))||'Integrado'):(p.mes+' '+p.source+(p.campanas&&p.campanas.length?' · '+p.campanas.map(function(c){return c.replace(new RegExp('\\s*'+p.source+'$'),'').trim();}).filter(Boolean).join(' · '):p.campana?' · '+p.campana:'')))+'</div>'+
         '<div class="proy-prog-wrap">'+
           '<div class="proy-prog-bar"><div class="proy-prog-fill" style="width:'+p.pct+'%;background:'+color+';"></div></div>'+
           '<div class="proy-prog-pct">'+p.pct+'%</div>'+

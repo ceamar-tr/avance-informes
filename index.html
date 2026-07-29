@@ -3630,7 +3630,7 @@ function renderSMA(){
   var proyMap = {};
   fd.forEach(function(r){
     var k = r.proyecto;
-    if(!proyMap[k]) proyMap[k]={proyecto:k, campana:r.campanaNorm||r.campana||'', secciones:[], color:getPrColor(k)};
+    if(!proyMap[k]) proyMap[k]={proyecto:k, campana:r.campanaNorm?(r.campanaNorm+(r.anio&&r.anio!==r.source?' '+r.anio:'')):r.campana||'', secciones:[], color:getPrColor(k)};
     proyMap[k].secciones.push(r);
   });
 

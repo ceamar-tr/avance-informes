@@ -2993,7 +2993,7 @@ function renderBusqHist(){
     var k = r.proyecto;
     if(!clienteMap[cliente][k]) clienteMap[cliente][k] = {};
     var mk = r.source + '|' + r.mes + '|' + (r.campanaNorm||r.campana||'');
-    if(!clienteMap[cliente][k][mk]) clienteMap[cliente][k][mk] = {anio:r.anio||r.source, mes:r.mes, campana:r.campanaNorm?(r.campanaNorm+(r.anio&&r.anio!==r.source?' '+r.anio:'')):r.campana||'', secciones:[]};
+    if(!clienteMap[cliente][k][mk]) clienteMap[cliente][k][mk] = {anio:r.anio||r.source, source:r.source, mes:r.mes, campana:r.campanaNorm||r.campana||'', secciones:[]};
     clienteMap[cliente][k][mk].secciones.push(r);
   });
 
@@ -3045,7 +3045,7 @@ function renderBusqHist(){
       var estadoCls = pct===100?'p-ok':pct>0?'p-parcial':'p-pend';
       html += '<div class="busq-mes-group">';
       html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap;">';
-      html += '<span class="busq-mes-label">'+grupo.mes+' '+grupo.anio+'</span>';
+      html += '<span class="busq-mes-label">'+grupo.mes+' '+grupo.source+'</span>';
       if(grupo.campana) html += '<span style="font-size:11px;font-weight:600;color:var(--azul-c);background:var(--azul-s);padding:2px 8px;border-radius:10px;">'+(grupo.campana+(grupo.anio?' '+grupo.anio:''))+'</span>';
       html += '<span class="pill '+estadoCls+'">'+comp+'/'+tot+' secciones</span>';
       var safeCamp = (grupo.campana||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");

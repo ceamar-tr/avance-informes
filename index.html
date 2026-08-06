@@ -2572,6 +2572,19 @@ function mostrarMenuAccion(ev, proyecto, seccion, source, mes){
     }));
   }
 
+  // Marcar disponible / Revertir
+  if(estadoActual !== 'disponible'){
+    actions.appendChild(mkActionBtn('◇','Marcar disponible','var(--suave)',function(){
+      setEstado(r.source, r.mes, r.proyecto, r.seccion, 'disponible');
+      saveField(r.source, r.mes, r.proyecto, r.seccion, 'disponible', 'true');
+    }));
+  } else {
+    actions.appendChild(mkActionBtn('○','Revertir a pendiente','var(--suave)',function(){
+      setEstado(r.source, r.mes, r.proyecto, r.seccion, 'pendiente');
+      saveField(r.source, r.mes, r.proyecto, r.seccion, 'disponible', 'false');
+    }));
+  }
+
   // Quitar asignado (solo si hay responsable)
   if(tieneResp){
     actions.appendChild(mkActionBtn('✕','Quitar asignado','#e55',function(){

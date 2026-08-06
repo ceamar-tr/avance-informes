@@ -2083,9 +2083,9 @@ function getEstadoLabel(estado){
   return m[estado] || estado;
 }
 
-function getEstadoIcon(estado){disponible:'◇', 
-  var m = {pendiente:'â', asignada:'â', en_proceso:'â', completada:'â'};
-  return m[estado] || 'â';
+function getEstadoIcon(estado){
+var m = {pendiente:'○', asignada:'◎', en_proceso:'◑', completada:'✓', disponible:'◇'};
+return m[estado] || '○';
 }
 
 function getEstadoCls(estado){

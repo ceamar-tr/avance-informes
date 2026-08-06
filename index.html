@@ -3157,6 +3157,7 @@ function abrirSidePanel(nombre, mes, anio, campana){
       +'<span class="secc-edit-field" data-field="responsable" data-valor="'+(s.responsable||'')+'" onclick="editarCampo(this)" title="Clic para editar responsable">'+(s.responsable||'â')+'</span>'
       +'<span style="font-size:10px;color:var(--suave);margin-left:4px;">SMA:</span>'
       +'<span class="secc-edit-field" data-field="smaResp" data-valor="'+(s.smaResp||'')+'" onclick="editarCampo(this)" title="Clic para editar responsable SMA">'+(s.smaResp||'â')+'</span>'
+      +'<span class="secc-edit-field" data-field="ubicacion" data-valor="'+(s.ubicacion||'')+'" onclick="editarCampo(this)" title="Disponible — clic para editar" style="font-size:11px;padding:2px 8px;border-radius:10px;margin-left:8px;cursor:pointer;'+(s.ubicacion?'background:var(--azul-s);color:var(--azul-c);border:1px solid var(--azul-c);font-weight:500;':'border:1px dashed var(--borde);color:var(--suave);')+'">'+(s.ubicacion?'📍 '+s.ubicacion:'📍 disponible')+'</span>'
       +'</div>'
       // Selector de estado de 4 botones
       +'<div class="estado-selector">'+estBtns+'</div>'

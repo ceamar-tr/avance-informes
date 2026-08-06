@@ -2083,8 +2083,8 @@ function getEstadoLabel(estado){
   return m[estado] || estado;
 }
 
-function getEstadoIcon(estado){disponible:'�', 
-  var m = {pendiente:'○', asignada:'◎', en_proceso:'◑', completada:'✓'};
+function getEstadoIcon(estado){
+  var m = {pendiente:'○', asignada:'◎', en_proceso:'◑', completada:'✓', disponible:'◇'};
   return m[estado] || '○';
 }
 

@@ -1432,6 +1432,7 @@ function fetchSheet(id, sheetName, source){
       var iTipo = findCol(['tipo'],                   [],     -1);
       var iPer  = findCol(['periodo','integrado'],    [],     -1);
       var iSubt = findCol(['subtipo','componente'],   [],          -1);
+      var iDisp = findCol(['disponib','disponible','disponibilidad'], [], -1);
 
       var rows=[], pA='', cA='', cnA='', aA='';
       json.table.rows.forEach(function(row){
@@ -1465,7 +1466,7 @@ function fetchSheet(id, sheetName, source){
               rows.push({proyecto:pA,campana:cA,campanaNorm:cnA,anio:aA||source,
                    seccion:seccion,responsable:responsable,completado:completado,
                    ubicacion:ubicacion,smaResp:smaResp,mes:sheetName,source:source,
-                   tipo:tipoR,periodoIntegrado:perR,subtipoIntegrado:subtipoR});
+                   tipo:tipoR,periodoIntegrado:perR,subtipoIntegrado:subtipoR,disponible:iDisp>=0?cv(iDisp):null});
       });
       setCached(cacheKey, rows);
       return rows;
@@ -2074,7 +2075,7 @@ function getEstado(r){
   if(r.completado) return 'completada';
   if(stored) return stored;
   if(r.responsable && r.responsable.trim()) return 'asignada';
-  if(aplicaLogicaV2(r.mes, r.anio || r.source) && r.ubicacion && r.ubicacion.trim()) return 'disponible';
+  if(aplicaLogicaV2(r.mes, r.anio || r.source)){if(r.disponible===true||r.disponible==='TRUE')return 'disponible';}else if(r.ubicacion&&r.ubicacion.trim())return 'disponible';
   return 'pendiente';
 }
 

@@ -1557,7 +1557,7 @@ function cargar(){
       document.getElementById('stxt').insertAdjacentHTML('afterend',
         '<span class="err-list">Errores: '+errors.join(', ')+'</span>');
     }
-  });
+  }).catch(function(e){ if(!window._retried){window._retried=true;setTimeout(cargar,4000);} });
 }
 
 // ─── AGRUPACIÓN POR PROYECTO (deduplicado por nombre) ────

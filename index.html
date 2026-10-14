@@ -977,8 +977,7 @@
       <div id="cal-actividad-panel"></div>
     </div>
 
-    <div id="peticiones-panel"></div>
-
+   
     <!-- Filtros -->
     <div class="filtros-col">
         <!-- Fila 1: Buscar + Todos los proyectos -->
@@ -1344,7 +1343,6 @@ document.addEventListener('DOMContentLoaded',function(){
     var zi = parseInt(localStorage.getItem('ceamar_zoom'));
     if(!isNaN(zi) && zi>=0 && zi<ZOOM_LEVELS.length){ zoomIdx=zi; document.querySelector('.wrap').style.zoom=ZOOM_LEVELS[zoomIdx]; }
   }catch(e){}
-  renderPeticiones();
 });
 
 // Dark mode
@@ -1486,7 +1484,6 @@ function fetchConfig(cb){
                   try{ urgentesColores = JSON.parse(d.data.urgentesColores || '{}'); }catch(e){ urgentesColores = {}; }
         try{ var _srv=JSON.parse(d.data.peticionesList||'[]'); if(_srv.length>0){peticionesList=_srv;}else{var _ls=localStorage.getItem('ceamar_peticiones');peticionesList=_ls?JSON.parse(_ls):[];} }catch(e){ peticionesList=[]; }
                   renderUrgentes();
-                  renderPeticiones();
           }
           if(cb) cb();
     })

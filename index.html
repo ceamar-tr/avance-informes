@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --verde:#1a5c2e;--verde-s:#e8f5e9;--azul:#0d3d5c;--azu-c:#1565c0;--azul-s:#e3f2fd;
+    --verde:#1a5c2e;--verde-s:#e8f5e9;--azul:#0d3d5c;--azu-c:#1565c0;--azul-s:#e3f2hfd;
     --amber:#f57c00;--amber-s:#fff3e0;--rojo:#c62828;--roj-s:#ffebee;
     --gris:#f4f6f8;--borde:#e0e0e0;--texto:#1a1a2e;--suave:#6b7280;
     --sombra:0 2px 14px rgba(0,0,0,0.07);--sombra-hover:0 8px 28px rgba(0,0,0,0.13);
@@ -2074,8 +2074,8 @@ function getEstado(r){
   var stored = ESTADOS_STORE[k];
   // Drive siempre gana si dice completado=true: evita que localStorage obsoleto oculte secciones ya completas
   if(r.completado) return 'completada';
-  if(stored) return stored;
   if(r.responsable && r.responsable.trim()) return 'asignada';
+  if(stored) return stored;
   if(aplicaLogicaV2(r.mes, r.anio || r.source)){if(r.disponible===true||r.disponible==='TRUE')return 'disponible';}else if(r.ubicacion&&r.ubicacion.trim())return 'disponible';
   return 'pendiente';
 }
